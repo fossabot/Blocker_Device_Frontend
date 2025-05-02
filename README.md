@@ -1,54 +1,43 @@
-# React + TypeScript + Vite
+# IoT Device Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 소개
+이 프로젝트는 블록체인 기반 IoT 디바이스 소프트웨어 업데이트 시스템의 프론트엔드입니다. React와 TypeScript를 사용하여 개발되었으며, Vite를 빌드 도구로 사용합니다.
 
-Currently, two official plugins are available:
+## 주요 기능
+- 실시간 디바이스 상태 모니터링
+- 블록체인 연결 상태 확인
+- 소프트웨어 업데이트 목록 조회
+- 업데이트 구매 및 설치 관리
+- 업데이트 이력 조회
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 시작하기
 
-## Expanding the ESLint configuration
+### 개발 환경 설정
+```bash
+# 의존성 설치
+npm install
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+# 개발 서버 실행
+npm run dev
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+# 프로덕션 빌드
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+## 프로젝트 구조
 ```
+src/
+├── components/     # UI 컴포넌트
+├── pages/         # 페이지 컴포넌트
+├── services/      # API 통신 로직
+├── hooks/         # 커스텀 훅
+├── types/         # TypeScript 타입 정의
+├── utils/         # 유틸리티 함수
+└── assets/        # 정적 리소스
+```
+
+## API 연동
+- 디바이스 정보 조회
+- 업데이트 목록 조회
+- 업데이트 설치
+- 업데이트 이력 조회
