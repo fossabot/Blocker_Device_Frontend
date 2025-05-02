@@ -1,0 +1,341 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100vh;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-container {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body {
+  background: 
+    radial-gradient(
+      ellipse 80% 40% at 50% 80%,
+      #d6d8d6 0%,
+      #d6d8d6 75%,
+      transparent 100%
+    ),
+    #d6d8d6;
+  font-family: 'Inter', sans-serif;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.main-frame {
+  width: 100%;
+  max-width: 1440px;
+  min-height: 1024px;
+  margin: 0 auto;
+  background: transparent;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 70px;
+}
+
+.status-bar {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 32px 0 24px 0;
+  padding: 0 40px 0 75px;
+  box-sizing: border-box;
+  position: sticky;
+  top: 70px;
+  z-index: 2;
+  align-items: flex-start;
+}
+
+.status-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.status-row.alarm-column {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  margin-left: 0;
+}
+
+.gear {
+  font-size: 14px;
+  font-weight: 700;
+  color: #171717;
+  letter-spacing: -0.13px;
+}
+
+.battery {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.battery-bar {
+  width: 32px;
+  height: 12px;
+  background: #bfc0c0;
+  border: 1px solid #6a6a6a;
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.battery-level {
+  height: 10px;
+  background: #414141;
+  border-radius: 1px;
+  position: absolute;
+  left: 2px;
+  top: 1px;
+}
+
+.battery-percent {
+  font-size: 14px;
+  color: #414141;
+  font-weight: 500;
+}
+
+.blockchain-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.blockchain-dot {
+  width: 16px;
+  height: 16px;
+  background: #eff0ef;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.blockchain-text {
+  font-size: 16.5px;
+  font-weight: 600;
+  color: #424242;
+}
+
+.alarm {
+  width: auto;
+  height: auto;
+  background: none;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.car-area {
+  position: relative;
+  min-height: 360px;
+  width: 720px;
+  margin: 0 auto 32px;
+  z-index: 1;
+  margin-top: -70px;
+}
+
+.car-image {
+  width: 100%;
+  height: 360px;
+  border-radius: 24px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+.car-label {
+  position: absolute;
+  font-size: 12px;
+  font-weight: 700;
+  color: #171717;
+  background: rgba(255,255,255,0.8);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.car-label.frunk { left: 80px; top: 80px; }
+.car-label.trunk { right: 80px; top: 80px; }
+.car-label.lock { left: 50%; top: 20px; transform: translateX(-50%); }
+
+.bottom-cards {
+  display: flex;
+  gap: 32px;
+  width: 80%;
+  justify-content: center;
+  padding: 0 40px;
+  box-sizing: border-box;
+  margin-top: -270px;
+  position: relative;
+  z-index: 2;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.card {
+  background: rgba(250, 250, 250, 0.85);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 20px;
+  width: 480px;
+  min-height: 160px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2e2e2e;
+  margin-bottom: 16px;
+}
+
+.device-info-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+}
+
+.device-info-label {
+  color: #2e2e2e;
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.device-info-value {
+  color: #2e2e2e;
+  text-align: right;
+  font-size: 13px;
+}
+
+.status-normal {
+  color: #25cb55;
+  font-weight: 600;
+}
+
+.final-update {
+  font-weight: 500;
+}
+
+/* Updates list styles */
+.updates-list {
+  font-size: 12px;
+  color: #2e2e2e;
+}
+
+.update-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 8px 0;
+}
+
+.update-btn {
+  background: #262626;
+  color: #fff;
+  border-radius: 20px;
+  padding: 3px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.update-btn.install {
+  background: #262626;
+}
+
+.update-btn.installing {
+  background: #3b3b3b;
+}
+
+/* Responsive styles */
+@media (max-width: 1440px) {
+  .bottom-cards {
+    flex-direction: column;
+    align-items: center;
+    width: 90%;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 640px;
+  }
+}
+
+@media (max-width: 840px) {
+  .status-bar {
+    margin: 32px 0 24px 0;
+    padding: 0 20px 0 80px;
+  }
+
+  .car-area {
+    width: 90%;
+    padding: 0 20px;
+  }
+
+  .bottom-cards {
+    padding: 0 20px;
+    margin-top: -200px;
+  }
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+}
