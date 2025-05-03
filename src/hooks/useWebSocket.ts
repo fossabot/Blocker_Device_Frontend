@@ -9,7 +9,7 @@ export const useWebSocket = () => {
 
   useEffect(() => {
     // Socket.IO 클라이언트 초기화
-    const socketIo = io('http://localhost:8002', {
+    const socketIo = io('http://localhost:5002', {
       path: '/socket.io',
       transports: ['polling', 'websocket'], // polling을 먼저 시도하고 websocket으로 업그레이드
       reconnectionAttempts: 5,

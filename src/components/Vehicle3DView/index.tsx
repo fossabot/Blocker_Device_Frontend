@@ -11,11 +11,14 @@ const Vehicle3DView: React.FC = () => {
     batteryLevel: 90
   });
 
-  const { lastNotification } = useWebSocket();
+  const { lastNotification, isConnected } = useWebSocket();
 
   useEffect(() => {
     if (lastNotification?.type === 'vehicle_status') {
-      setVehicleStatus(lastNotification.data as VehicleStatus);
+      setVehicleStatus(prev => ({
+        ...prev,
+        ...lastNotification.data as VehicleStatus
+      }));
     }
   }, [lastNotification]);
 
@@ -28,16 +31,18 @@ const Vehicle3DView: React.FC = () => {
             <div className="battery-bar">
               <div 
                 className="battery-level"
-                style={{ width: `${(vehicleStatus.batteryLevel || 0) * 0.75}px` }}
+                style={{ width: `${(vehicleStatus?.batteryLevel || 0) * 0.75}px` }}
               ></div>
             </div>
-            <span className="battery-percent">{vehicleStatus.batteryLevel}%</span>
+            <span className="battery-percent">{vehicleStatus?.batteryLevel || 0}%</span>
           </div>
         </div>
         <div className="status-row alarm-column">
           <div className="blockchain-status flex items-center gap-3 pl-2 pr-6 py-2 bg-gray-100 rounded-full">
-            <CubeIcon className="w-6 h-6 text-green-500" />
-            <span className="blockchain-text text-gray-800 font-semibold">Connected</span>
+            <CubeIcon className={`w-6 h-6 ${isConnected ? 'text-green-500' : 'text-red-500'}`} />
+            <span className={`blockchain-text font-semibold ${isConnected ? 'text-gray-800' : 'text-gray-800'}`}>
+              {isConnected ? 'Connected' : 'Disconnected'}
+            </span>
           </div>
           <div className="alarm pl-1">
             <BellIcon className="w-7 h-7 text-gray-400" />
@@ -46,18 +51,19 @@ const Vehicle3DView: React.FC = () => {
       </div>
 
       <div className="car-area">
-      <img
-        src="/automobile.svg"
-        alt="Car"
-      />
-        <div className={`car-label frunk ${vehicleStatus.doorOpen ? 'bg-red-100' : ''}`}>
+        <img
+          src="/automobile.svg"
+          alt="Car"
+          className="w-full h-auto"
+        />
+        <div className={`car-label frunk ${vehicleStatus?.doorOpen ? 'bg-red-100' : ''}`}>
           Open<br/>Frunk
         </div>
-        <div className={`car-label trunk ${vehicleStatus.trunkOpen ? 'bg-red-100' : ''}`}>
+        <div className={`car-label trunk ${vehicleStatus?.trunkOpen ? 'bg-red-100' : ''}`}>
           Trunk<br/>Open
         </div>
         <div className="car-label lock">
-          {vehicleStatus.doorOpen ? '🔓' : '🔒'}
+          {vehicleStatus?.doorOpen ? '🔓' : '🔒'}
         </div>
       </div>
     </div>
