@@ -1,62 +1,110 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { io, Socket as ClientSocket } from 'socket.io-client';
 import { WebSocketNotification } from '../types/device';
 
+const SOCKET_URL = 'http://localhost:5002';
+
 export const useWebSocket = () => {
-  const [socket, setSocket] = useState<ClientSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [lastNotification, setLastNotification] = useState<WebSocketNotification | null>(null);
+  const socketRef = useRef<ClientSocket | null>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectAttemptsRef = useRef(0);
+  const MAX_RECONNECT_ATTEMPTS = 5;
 
   useEffect(() => {
-    // Socket.IO 클라이언트 초기화
-    const socketIo = io('http://localhost:5002', {
-      path: '/socket.io',
-      transports: ['websocket'], 
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      autoConnect: true
-    });
+    let isCleanedUp = false;
 
-    // 연결 이벤트 핸들러
-    socketIo.on('connect', () => {
-      console.log('WebSocket 연결됨');
-      setIsConnected(true);
-    });
+    const initializeSocket = () => {
+      if (socketRef.current?.connected) {
+        console.log('[WebSocket] 이미 연결되어 있음');
+        return;
+      }
 
-    socketIo.on('connect_error', (error) => {
-      console.error('WebSocket 연결 오류:', error);
-      setIsConnected(false);
-    });
+      if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+        console.error('[WebSocket] 최대 재연결 시도 횟수 초과');
+        return;
+      }
 
-    socketIo.on('disconnect', () => {
-      console.log('WebSocket 연결 해제됨');
-      setIsConnected(false);
-    });
+      console.log('[WebSocket] 초기화 시작...', SOCKET_URL);
+      
+      const socket = io(SOCKET_URL, {
+        path: '/socket.io',
+        transports: ['websocket'],
+        reconnection: true,
+        reconnectionDelay: 1000 * Math.min(reconnectAttemptsRef.current + 1, 5),
+        reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
+        timeout: 20000,
+        autoConnect: true,
+        forceNew: true,
+        withCredentials: true
+      });
 
-    // 알림 이벤트 핸들러
-    socketIo.on('notification', (data: WebSocketNotification) => {
-      console.log('알림 수신:', data);
-      setLastNotification(data);
-    });
+      socket.on('connect', () => {
+        console.log('[WebSocket] 연결됨:', socket.id);
+        setIsConnected(true);
+        reconnectAttemptsRef.current = 0;
+      });
 
-    setSocket(socketIo);
+      socket.on('connect_error', (error) => {
+        console.error('[WebSocket] 연결 오류:', error);
+        setIsConnected(false);
+        reconnectAttemptsRef.current++;
+        
+        if (!isCleanedUp && reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+          console.log(`[WebSocket] 재연결 시도 ${reconnectAttemptsRef.current}/${MAX_RECONNECT_ATTEMPTS}`);
+        }
+      });
 
-    // 클린업 함수
+      socket.on('disconnect', (reason) => {
+        console.log('[WebSocket] 연결 해제됨, 이유:', reason);
+        setIsConnected(false);
+
+        if (!isCleanedUp && reason !== 'io client disconnect') {
+          reconnectTimeoutRef.current = setTimeout(() => {
+            console.log('[WebSocket] 재연결 시도 중...');
+            socket.connect();
+          }, 1000 * Math.min(reconnectAttemptsRef.current + 1, 5));
+        }
+      });
+
+      socket.on('notification', (data: WebSocketNotification) => {
+        if (!isCleanedUp) {
+          console.log('[WebSocket] 알림 수신:', data);
+          setLastNotification(data);
+        }
+      });
+
+      socket.on('error', (error) => {
+        console.error('[WebSocket] 에러 발생:', error);
+      });
+
+      socketRef.current = socket;
+    };
+
+    initializeSocket();
+
     return () => {
-      if (socketIo) {
-        socketIo.disconnect();
+      isCleanedUp = true;
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (socketRef.current) {
+        console.log('[WebSocket] 연결 정리 중...');
+        socketRef.current.removeAllListeners();
+        socketRef.current.disconnect();
+        socketRef.current = null;
       }
     };
   }, []);
 
-  // 메시지 전송 함수
   const sendMessage = useCallback((type: string, data: any) => {
-    if (socket && isConnected) {
-      socket.emit(type, data);
+    if (socketRef.current && isConnected) {
+      socketRef.current.emit(type, data);
     } else {
-      console.warn('WebSocket이 연결되어 있지 않습니다');
+      console.warn('[WebSocket] 연결되어 있지 않음');
     }
-  }, [socket, isConnected]);
+  }, [isConnected]);
 
   return {
     isConnected,
