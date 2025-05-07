@@ -17,9 +17,17 @@ export const formatFileSize = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
+export const toWei = (eth: number): string => {
+  return (eth * 1e18).toString();
+};
+
+export const fromWei = (wei: string): number => {
+  return parseFloat(wei) / 1e18;
+};
+
 export const formatEther = (value: string): string => {
-  const num = parseFloat(value);
-  return num.toFixed(6);
+  const eth = fromWei(value);
+  return eth.toFixed(2);
 };
 
 export const truncateHash = (hash: string, length: number = 8): string => {

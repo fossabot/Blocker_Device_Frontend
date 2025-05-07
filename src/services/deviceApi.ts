@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { DeviceInfo, Update } from '../types/device';
+import { DeviceInfo, Update, UpdateHistory } from '../types/device';
+import { toWei } from '../utils/formatter';
 
 const api = axios.create({
   baseURL: '/api/device',
@@ -39,14 +40,14 @@ export const deviceApi = {
     }));
   },
 
-  async getUpdateHistory(): Promise<Update[]> {
+  async getUpdateHistory(): Promise<UpdateHistory[]> {
     const { data } = await api.get('/history');
     return data.history.map((item: any) => ({
       uid: item.uid,
       version: item.version,
       description: item.description,
-      date: new Date(item.timestamp * 1000).toISOString(),
-      status: 'completed'
+      timestamp: item.timestamp,
+      tx_hash: item.tx_hash
     }));
   },
 
@@ -59,7 +60,10 @@ export const deviceApi = {
   },
 
   async purchaseUpdate(uid: string, price: number): Promise<{ success: boolean; transaction: string; message: string }> {
-    const { data } = await api.post('/updates/purchase', { uid, price });
+    const { data } = await api.post('/updates/purchase', { 
+      uid, 
+      price: toWei(price) // ETH를 Wei로 변환
+    });
     return {
       success: data.success,
       transaction: data.transaction,
