@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { VehicleStatus } from '../../types/device';
 import { CubeIcon, BellIcon } from '@heroicons/react/24/outline';
+import VehicleLabels from './labels';
 
 const Vehicle3DView: React.FC = () => {
   const [vehicleStatus, setVehicleStatus] = useState<VehicleStatus>({
@@ -50,21 +51,13 @@ const Vehicle3DView: React.FC = () => {
         </div>
       </div>
 
-      <div className="car-area">
+      <div className="car-area relative">
         <img
           src="/automobile.svg"
           alt="Car"
           className="w-full h-auto"
         />
-        <div className={`car-label frunk ${vehicleStatus?.doorOpen ? 'bg-red-100' : ''}`}>
-          Open<br/>Frunk
-        </div>
-        <div className={`car-label trunk ${vehicleStatus?.trunkOpen ? 'bg-red-100' : ''}`}>
-          Trunk<br/>Open
-        </div>
-        <div className="car-label lock">
-          {vehicleStatus?.doorOpen ? '🔓' : '🔒'}
-        </div>
+        <VehicleLabels status={vehicleStatus} />
       </div>
     </div>
   );
