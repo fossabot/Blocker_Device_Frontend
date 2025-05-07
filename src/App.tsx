@@ -1,19 +1,20 @@
-import React from 'react';
-import NavBar from './components/NavBar';
-import AppRouter from './router/AppRouter';
 import './App.css';
+import AppRouter from './router/AppRouter';
+import NavBar from './components/NavBar';
+import { UpdateAnimation } from './components/UpdateProgress/UpdateAnimation';
+import { useRecoilValue } from 'recoil';
+import { showAnimationState } from './store/atoms';
 
-const App: React.FC = () => {
+function App() {
+  const showAnimation = useRecoilValue(showAnimationState);
+
   return (
-    <div className="min-h-screen">
-      <div className="w-full relative">
-        <div className="app-container">
-          <NavBar />
-          <AppRouter />
-        </div>
-      </div>
+    <div className="App">
+      <NavBar />
+      <AppRouter />
+      {showAnimation && <UpdateAnimation />}
     </div>
   );
-};
+}
 
 export default App;

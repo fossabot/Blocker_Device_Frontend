@@ -15,3 +15,8 @@ export const connectionState = atom<boolean>({
   key: 'connectionState',
   default: false,
 });
+
+export const showAnimationState = atom<boolean>({
+  key: 'showAnimationState',
+  default: false,
+});
