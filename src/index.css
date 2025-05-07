@@ -28,6 +28,25 @@
   }
 }
 
+/* 스크롤바 스타일 */
+.scroll-content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.scroll-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
 @media (prefers-color-scheme: dark) {
   body {
     @apply bg-gray-900 text-gray-100;

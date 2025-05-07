@@ -225,12 +225,20 @@ body {
 }
 
 .card {
-  background: rgba(250, 250, 250, 0.85);
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   padding: 20px;
   width: 480px;
-  min-height: 160px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(250, 250, 250, 0.85);
+}
+
+.card-content {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 300px;
 }
 
 .card-title {
@@ -274,11 +282,13 @@ body {
 }
 
 .update-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  padding: 8px 0;
+  gap: 8px;
+  font-size: 13px;
+  color: #2e2e2e;
+  padding: 4px 0;
 }
 
 .update-btn {
@@ -290,8 +300,12 @@ body {
   font-weight: 500;
   border: none;
   cursor: pointer;
-  margin-left: 8px;
 }
+
+.update-btn.installing {
+  background: #3b3b3b;
+}
+
 
 .update-btn.install {
   background: #262626;
@@ -299,6 +313,180 @@ body {
 
 .update-btn.installing {
   background: #3b3b3b;
+}
+
+/* Update animation styles */
+.update-animation {
+  position: fixed;
+  top: 68px; /* navbar 높이만큼 아래로 */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(12, 12, 29, 0.95);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-animation-btn {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 100;
+}
+
+.close-animation-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.scene-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.content-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  text-align: center;
+  pointer-events: none;
+}
+
+.content-overlay .description,
+.content-overlay .transaction-info {
+  pointer-events: none;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.description {
+  color: white;
+  font-size: 18px;
+  margin: 20px 0;
+  text-align: center;
+  transition: opacity 0.3s ease;
+}
+
+.transaction-info {
+  color: white;
+  margin: 20px 0;
+}
+
+.verification-step {
+  margin: 10px 0;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: slideIn 0.5s forwards;
+}
+
+.verification-step.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hash-value {
+  color: #4c7fe0;
+  margin: 0 8px;
+  font-family: monospace;
+}
+
+.decryption-process {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.decryption-step {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.decryption-arrow {
+  color: #4c7fe0;
+  font-size: 20px;
+}
+
+.controls {
+  position: absolute;
+  bottom: 32px;
+  left: 32px;
+  display: flex;
+  gap: 16px;
+  z-index: 100;
+}
+
+.controls button {
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#play-btn {
+  background: #4c7fe0;
+  color: white;
+  border: none;
+}
+
+#play-btn:hover {
+  background: #3b6ac7;
+}
+
+#play-btn:disabled {
+  background: #2c4a8a;
+  cursor: not-allowed;
+}
+
+#reset-btn {
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+#reset-btn:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+#reset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Responsive styles */
