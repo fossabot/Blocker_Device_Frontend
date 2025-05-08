@@ -10,12 +10,31 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://localhost:5002',
-        changeOrigin: true
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req) => {
+            console.log('Sending Request to the Target:', req.method, req.url);
+          });
+          proxy.on('proxyRes', (proxyRes, req) => {
+            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+          });
+        }
       },
       '/socket.io': {
         target: 'http://localhost:5002',
         ws: true,
-        changeOrigin: true
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err) => {
+            console.log('proxy error', err);
+          });
+        }
       }
     }
   },

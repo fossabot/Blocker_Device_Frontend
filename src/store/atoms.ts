@@ -1,5 +1,6 @@
 import { atom } from 'recoil';
 import { DeviceInfo, Update } from '../types/device';
+import { ToastData } from '../components/shared/ToastContainer';
 
 export const deviceInfoState = atom<DeviceInfo | null>({
   key: 'deviceInfoState',
@@ -19,4 +20,9 @@ export const connectionState = atom<boolean>({
 export const showAnimationState = atom<boolean>({
   key: 'showAnimationState',
   default: false,
+});
+
+export const toastsState = atom<ToastData[]>({
+  key: 'toastsState',
+  default: [],
 });

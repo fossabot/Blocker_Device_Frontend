@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { DeviceInfo, Update, UpdateHistory } from '../types/device';
-import { toWei } from '../utils/formatter';
 
 const api = axios.create({
   baseURL: '/api/device',
@@ -35,8 +34,7 @@ export const deviceApi = {
       description: update.description,
       price: parseFloat(update.price),
       status: update.status || 'available',
-      date: update.date ? new Date(update.date).toISOString() : undefined,
-      isAuthorized: update.isAuthorized
+      date: update.date ? new Date(update.date).toISOString() : undefined
     }));
   },
 
@@ -59,15 +57,30 @@ export const deviceApi = {
     };
   },
 
-  async purchaseUpdate(uid: string, price: number): Promise<{ success: boolean; transaction: string; message: string }> {
-    const { data } = await api.post('/updates/purchase', { 
-      uid, 
-      price: toWei(price) // ETH를 Wei로 변환
-    });
-    return {
-      success: data.success,
-      transaction: data.transaction,
-      message: data.message || data.error
-    };
+  async purchaseUpdate(uid: string, price: number): Promise<{ success: boolean; message?: string }> {
+    try {
+      const { data } = await api.post('/updates/purchase', { 
+        uid, 
+        price: price.toString()
+      });
+      return {
+        success: data.success,
+        message: data.message || data.error
+      };
+    } catch (error: any) {
+      // 일반적인 구매 실패 에러 처리
+      if (error.response?.status === 500) {
+        return {
+          success: false,
+          message: '업데이트 구매 중 오류가 발생했습니다.'
+        };
+      }
+      
+      // 네트워크 오류나 기타 오류
+      return {
+        success: false,
+        message: '네트워크 오류가 발생했습니다.'
+      };
+    }
   }
 };

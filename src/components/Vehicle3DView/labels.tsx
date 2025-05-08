@@ -10,7 +10,7 @@ const VehicleLabels: React.FC<VehicleLabelsProps> = ({ status }) => {
   return (
     <div className="absolute inset-0 pointer-events-none">
       {/* Door position */}
-      <div className="absolute left-[12%] top-[15%]">
+      <div className="absolute left-[12%] top-[16%]">
         <BounceLoader 
           size={20} 
           color={status.doorOpen ? '#EF4444' : '#25cb55'} 

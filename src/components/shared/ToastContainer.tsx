@@ -3,10 +3,11 @@ import Toast from './Toast';
 
 export interface ToastData {
   id: string;
-  type: 'default' | 'success' | 'info';
+  type: 'default' | 'success' | 'info' | 'error';
   title: string;
   message?: string;
-  percent?: number;
+  progress: number;
+  completed?: boolean;
 }
 
 interface ToastContainerProps {
@@ -16,15 +17,11 @@ interface ToastContainerProps {
 
 const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onClose }) => {
   return (
-    <div className="toast-container fixed top-5 right-5 z-[9999] flex flex-col gap-4 items-end pointer-events-none">
+    <div className="toast-container fixed top-[72px] right-5 z-[9999] flex flex-col gap-4 items-end pointer-events-none">
       {toasts.map((toast) => (
         <div key={toast.id} className="pointer-events-auto">
           <Toast
-            id={toast.id}
-            type={toast.type}
-            title={toast.title}
-            message={toast.message}
-            percent={toast.percent}
+            {...toast}
             onClose={onClose}
           />
         </div>

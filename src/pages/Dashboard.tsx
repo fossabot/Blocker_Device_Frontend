@@ -18,7 +18,7 @@ const Dashboard: React.FC = () => {
   });
   const [updates, setUpdates] = useState<Update[]>([]);
   const [toasts, setToasts] = useState<ToastData[]>([]);
-  const { lastNotification, isConnected } = useWebSocket();
+  const { lastNotification } = useWebSocket();
 
   const loadDeviceInfo = async () => {
     try {
@@ -40,17 +40,15 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const loadInitialData = async () => {
       await loadDeviceInfo();
-      if (!isConnected) {
-        try {
-          const updatesData = await deviceApi.getAvailableUpdates();
-          setUpdates(updatesData);
-        } catch (error) {
-          console.error('Failed to load updates:', error);
-        }
+      try {
+        const updatesData = await deviceApi.getAvailableUpdates();
+        setUpdates(updatesData);
+      } catch (error) {
+        console.error('Failed to load updates:', error);
       }
     };
     loadInitialData();
-  }, [isConnected]);
+  }, []);
 
   // WebSocket 알림 처리
   useEffect(() => {
@@ -73,19 +71,17 @@ const Dashboard: React.FC = () => {
       const newToast = {
         id: toastId,
         type: 'info' as const,
-        title: `새로운 업데이트 v${updateData.version}`,
-        message: updateData.description || '새로운 업데이트가 있습니다'
+        title: `새로운 업데이트`,
+        message: `버전 ${updateData.version}이 사용 가능합니다\n${updateData.description || ''}`,
+        progress: 0
       };
-      console.log('[Dashboard] Adding new toast:', newToast);
       setToasts(prevToasts => [...prevToasts, newToast]);
 
       // 목록 갱신
-      console.log('[Dashboard] Refreshing updates list after new update');
       handleRefresh();
 
       // 10초 후 토스트 제거
       setTimeout(() => {
-        console.log('[Dashboard] Removing toast:', toastId);
         setToasts(prevToasts => prevToasts.filter(t => t.id !== toastId));
       }, 10000);
     }
@@ -100,7 +96,8 @@ const Dashboard: React.FC = () => {
           : update
       ));
 
-      const toastId = `progress-${uid}`;
+      // Update existing progress toast or create new one
+      const toastId = `install-${uid}`;
       setToasts(prev => {
         const existing = prev.find(t => t.id === toastId);
         if (existing) {
@@ -109,43 +106,38 @@ const Dashboard: React.FC = () => {
               ? { 
                   ...t, 
                   type: progress === 100 ? 'success' : 'default',
-                  title: progress === 100 
-                    ? '업데이트 완료!'
-                    : `업데이트 진행 중: ${progress}%`,
+                  title: progress === 100 ? '업데이트 설치 완료!' : '업데이트 설치 중',
+                  message: `${Math.round(progress)}% 완료`,
                   percent: progress 
                 }
               : t
           );
         }
-        return [
-          ...prev,
-          {
-            id: toastId,
-            type: 'default',
-            title: `업데이트 진행 중: ${progress}%`,
-            percent: progress
-          }
-        ];
+        return prev;
       });
 
       if (progress === 100) {
         loadDeviceInfo();
         setTimeout(() => {
           setToasts(prevToasts => prevToasts.filter(t => t.id !== toastId));
-        }, 5000);
+        }, 3000);
       }
     }
   }, [lastNotification]);
 
-  // 새로고침 처리 - HTTP 요청 사용
   const handleRefresh = async () => {
     try {
-      console.log('[Dashboard] Refreshing updates list...');
       const updatesData = await deviceApi.getAvailableUpdates();
-      console.log('[Dashboard] Got updates:', updatesData);
       setUpdates(updatesData);
     } catch (error) {
       console.error('Failed to refresh updates:', error);
+      setToasts(prev => [...prev, {
+        id: `error-refresh-${Date.now()}`,
+        type: 'default',
+        title: '오류',
+        message: '업데이트 목록을 새로고침하는데 실패했습니다',
+        progress: 0
+      }]);
     }
   };
 

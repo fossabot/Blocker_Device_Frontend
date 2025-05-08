@@ -19,10 +19,9 @@ export interface Update {
   version: string;
   description?: string;
   price?: number;
-  status: 'available' | 'installing' | 'completed' | 'failed';
+  status: 'available' | 'installing' | 'completed';
   progress?: number;
   date?: string;
-  isAuthorized?: boolean;
 }
 
 export interface UpdateHistory {
