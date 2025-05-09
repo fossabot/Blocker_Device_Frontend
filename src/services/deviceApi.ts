@@ -34,19 +34,24 @@ export const deviceApi = {
       description: update.description,
       price: parseFloat(update.price),
       status: update.status || 'available',
-      date: update.date ? new Date(update.date).toISOString() : undefined
+      date: update.date ? new Date(update.date * 1000).toISOString() : undefined
     }));
   },
 
   async getUpdateHistory(): Promise<UpdateHistory[]> {
-    const { data } = await api.get('/history');
-    return data.history.map((item: any) => ({
-      uid: item.uid,
-      version: item.version,
-      description: item.description,
-      timestamp: item.timestamp,
-      tx_hash: item.tx_hash
-    }));
+    try {
+      const { data } = await api.get('/history');
+      // 실제 데이터가 있으면 해당 데이터 반환
+      if (data && Array.isArray(data.history) && data.history.length > 0) {
+        return data.history;
+      }
+      // 데이터가 없는 경우 빈 배열 반환
+      return [];
+    } catch (error) {
+      // API 호출 실패 시 빈 배열 반환
+      console.warn('Failed to fetch update history:', error);
+      return [];
+    }
   },
 
   async installUpdate(uid: string): Promise<{ success: boolean; message?: string }> {

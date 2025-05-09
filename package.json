@@ -29,7 +29,8 @@
     "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.17",
     "three": "^0.176.0",
-    "three-stdlib": "^2.36.0"
+    "three-stdlib": "^2.36.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.55",

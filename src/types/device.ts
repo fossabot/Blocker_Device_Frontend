@@ -27,9 +27,14 @@ export interface Update {
 export interface UpdateHistory {
   uid: string;
   version: string;
-  timestamp: number;
   description: string;
-  tx_hash: string;
+  price_wei: string;
+  price_eth: number;
+  isPurchased: boolean | 'refunded';
+  isInstalled: boolean;
+  installedAt?: number;
+  purchasedAt?: number;
+  tx_hash?: string;
 }
 
 export interface UpdateProgress {

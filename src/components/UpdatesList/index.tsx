@@ -6,6 +6,8 @@ import { formatEther } from '../../utils/formatter';
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useSetRecoilState } from 'recoil';
 import { toastsState } from '../../store/atoms';
+import SyncLoader from 'react-spinners/SyncLoader';
+import { v4 as uuidv4 } from 'uuid';
 
 interface UpdatesListProps {
   updates: Update[];
@@ -19,11 +21,25 @@ const UpdatesList: React.FC<UpdatesListProps> = ({ updates, onUpdateInstall, onR
   const [isRefreshing, setIsRefreshing] = useState(false);
   const setToasts = useSetRecoilState(toastsState);
 
+  // Toast 추가 함수 (중복 방지)
+  const addToast = (toast: any) => {
+    setToasts(prev => {
+      if (prev.some(t => t.id === toast.id)) return prev;
+      return [...prev, toast];
+    });
+  };
+
+  // Toast 삭제 함수
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
+
   const handlePurchaseAndInstall = async (update: Update) => {
     if (!update.price) return;
     
-    const purchaseToastId = `purchase-${update.uid}`;
-    const errorToastId = `error-${update.uid}`;
+    // 항상 고유한 id 사용
+    const purchaseToastId = `purchase-${update.uid}-${uuidv4()}`;
+    const errorToastId = `error-${update.uid}-${uuidv4()}`;
     let purchaseInterval: NodeJS.Timeout | null = null;
     let installInterval: NodeJS.Timeout | null = null;
 
@@ -31,13 +47,13 @@ const UpdatesList: React.FC<UpdatesListProps> = ({ updates, onUpdateInstall, onR
       setLoading(update.uid);
       
       // Add purchase toast
-      setToasts(prev => [...prev, {
+      addToast({
         id: purchaseToastId,
         type: 'info',
         title: 'Purchase',
         message: `${update.uid} 구매 중`,
         progress: 0
-      }]);
+      });
 
       let purchaseProgress = 0;
       // Start progress animation for purchase
@@ -64,27 +80,25 @@ const UpdatesList: React.FC<UpdatesListProps> = ({ updates, onUpdateInstall, onR
       }
 
       // Show purchase success toast
-      setToasts(prev => [
-        ...prev.filter(t => t.id !== purchaseToastId),
-        {
-          id: `success-purchase-${update.uid}`,
-          type: 'success',
-          title: 'Complete!',
-          message: `${update.uid}의 구매가 완료되었습니다`,
-          progress: 100,
-          completed: true
-        }
-      ]);
+      removeToast(purchaseToastId);
+      addToast({
+        id: `success-purchase-${update.uid}-${uuidv4()}`,
+        type: 'success',
+        title: 'Complete!',
+        message: `${update.uid}의 구매가 완료되었습니다`,
+        progress: 100,
+        completed: true
+      });
 
       // Add installation toast
-      const installToastId = `install-${update.uid}`;
-      setToasts(prev => [...prev, {
+      const installToastId = `install-${update.uid}-${uuidv4()}`;
+      addToast({
         id: installToastId,
         type: 'info',
         title: 'Installing...',
         message: `${update.uid} 설치 중`,
         progress: 0
-      }]);
+      });
 
       let installProgress = 0;
       // Start progress animation for installation
@@ -111,40 +125,33 @@ const UpdatesList: React.FC<UpdatesListProps> = ({ updates, onUpdateInstall, onR
       }
 
       // Show installation success toast
-      setToasts(prev => [
-        ...prev.filter(t => t.id !== installToastId),
-        {
-          id: `success-install-${update.uid}`,
-          type: 'success',
-          title: 'Complete!',
-          message: `${update.uid} 설치가 완료되었습니다`,
-          progress: 100,
-          completed: true
-        }
-      ]);
+      removeToast(installToastId);
+      addToast({
+        id: `success-install-${update.uid}-${uuidv4()}`,
+        type: 'success',
+        title: 'Complete!',
+        message: `${update.uid} 설치가 완료되었습니다`,
+        progress: 100,
+        completed: true
+      });
 
       onUpdateInstall?.();
       
     } catch (err) {
-      // Clear any running intervals
       if (purchaseInterval) {
         clearInterval(purchaseInterval);
       }
       if (installInterval) {
         clearInterval(installInterval);
       }
-
       const errorMessage = err instanceof Error ? err.message : '처리 중 오류가 발생했습니다';
-      
-      // Add error toast while keeping the current progress toast
-      setToasts(prev => [...prev, {
+      addToast({
         id: errorToastId,
         type: 'error',
         title: 'Error',
         message: errorMessage,
         progress: 0
-      }]);
-      
+      });
       setError(null);
     } finally {
       setLoading(null);
@@ -189,13 +196,17 @@ const UpdatesList: React.FC<UpdatesListProps> = ({ updates, onUpdateInstall, onR
             {updates.map(update => (
               <div key={`${update.uid}-${update.version}`} className="update-row flex text-sm">
                 <span className="w-52 truncate" title={update.uid}>{update.uid}</span>
-                <span className="w-12 text-left truncate">v.{update.version}</span>
-                <span className="w-24 text-right truncate">{update.price ? `${formatEther(update.price.toString())} ETH` : '-'}</span>
-                <div className="ml-6">
-                  {loading === update.uid ? (
-                    <button className="update-btn installing" disabled>처리 중...</button>
-                  ) : update.status === 'installing' ? (
-                    <button className="update-btn installing" disabled>설치 중</button>
+                <span className="w-14 text-left truncate">v.{update.version}</span>
+                <span className="w-20 text-right truncate">{update.price ? `${formatEther(update.price.toString())} ETH` : '-'}</span>
+                <div className="ml-7">
+                  {loading === update.uid || update.status === 'installing' ? (
+                    <button
+                      className="update-btn installing flex items-center justify-center"
+                      disabled
+                      style={{ width: 56, height: 32, minWidth: 56, minHeight: 32, padding: 0, lineHeight: '32px' }}
+                    >
+                      <SyncLoader size={4} color="#fff" style={{ display: 'block', margin: '0 auto' }} />
+                    </button>
                   ) : (
                     <button 
                       className="update-btn install" 

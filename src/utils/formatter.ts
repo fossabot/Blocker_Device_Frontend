@@ -1,5 +1,11 @@
-export const formatDate = (dateStr: string): string => {
-  const date = new Date(dateStr);
+export const formatDate = (dateInput: string | number): string => {
+  let date: Date;
+  if (typeof dateInput === 'number') {
+    // 10자리면 초 단위로 간주
+    date = dateInput < 1e12 ? new Date(dateInput * 1000) : new Date(dateInput);
+  } else {
+    date = new Date(dateInput);
+  }
   return new Intl.DateTimeFormat('ko-KR', {
     year: 'numeric',
     month: 'long',
