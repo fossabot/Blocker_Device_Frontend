@@ -2,7 +2,6 @@ body, html {
   margin: 0;
   padding: 0;
   height: 100%;
-  overflow: hidden;
 }
 
 #root {
@@ -11,7 +10,6 @@ body, html {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .app-container {
@@ -75,7 +73,7 @@ body {
 .main-frame {
   width: 100%;
   max-width: 1440px;
-  min-height: 1024px;
+  min-height: 100vh; /* 화면을 항상 꽉 채우도록 수정 */
   margin: 0 auto;
   background: transparent;
   box-sizing: border-box;

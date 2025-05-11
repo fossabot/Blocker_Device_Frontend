@@ -26,15 +26,13 @@ export interface Update {
 
 export interface UpdateHistory {
   uid: string;
-  version: string;
-  description: string;
-  price_wei: string;
-  price_eth: number;
-  isPurchased: boolean | 'refunded';
+  version?: string;
+  description?: string;
+  price_eth?: number;
   isInstalled: boolean;
+  isRefunded: boolean;
   installedAt?: number;
-  purchasedAt?: number;
-  tx_hash?: string;
+  refundedAt?: number;
 }
 
 export interface UpdateProgress {

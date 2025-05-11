@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useWebSocket } from '../../hooks/useWebSocket';
+import { useWebSocketContext } from '../../hooks/WebSocketContext';
 import { VehicleStatus } from '../../types/device';
 import { CubeIcon, BellIcon } from '@heroicons/react/24/outline';
 import VehicleLabels from './labels';
@@ -12,7 +12,7 @@ const Vehicle3DView: React.FC = () => {
     batteryLevel: 90
   });
 
-  const { lastNotification, isConnected } = useWebSocket();
+  const { lastNotification, isConnected } = useWebSocketContext();
 
   useEffect(() => {
     if (lastNotification?.type === 'vehicle_status') {

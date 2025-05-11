@@ -5,6 +5,7 @@ import { UpdateAnimation } from './components/UpdateProgress/UpdateAnimation';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import { showAnimationState, toastsState } from './store/atoms';
 import ToastContainer from './components/shared/ToastContainer';
+import { WebSocketProvider } from './hooks/WebSocketContext';
 
 function App() {
   const showAnimation = useRecoilValue(showAnimationState);
@@ -15,12 +16,14 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <NavBar />
-      <AppRouter />
-      {showAnimation && <UpdateAnimation />}
-      <ToastContainer toasts={toasts} onClose={handleCloseToast} />
-    </div>
+    <WebSocketProvider>
+      <div className="App">
+        <NavBar />
+        <AppRouter />
+        {showAnimation && <UpdateAnimation />}
+        <ToastContainer toasts={toasts} onClose={handleCloseToast} />
+      </div>
+    </WebSocketProvider>
   );
 }
 

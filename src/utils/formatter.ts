@@ -15,6 +15,21 @@ export const formatDate = (dateInput: string | number): string => {
   }).format(date);
 };
 
+export const formatDateHome = (dateInput: string | number): string => {
+  let date: Date;
+  if (typeof dateInput === 'number') {
+    // 10자리면 초 단위로 간주
+    date = dateInput < 1e12 ? new Date(dateInput * 1000) : new Date(dateInput);
+  } else {
+    date = new Date(dateInput);
+  }
+  // YY/MM/DD 포맷으로 반환
+  const year = date.getFullYear().toString().slice(-2);
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}/${month}/${day}`;
+};
+
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
   const k = 1024;

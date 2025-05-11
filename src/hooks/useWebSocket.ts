@@ -71,7 +71,7 @@ export const useWebSocket = () => {
       socket.on('notification', (data: WebSocketNotification) => {
         if (!isCleanedUp) {
           console.log('[WebSocket] 알림 수신:', data);
-          setLastNotification(data);
+          setLastNotification({ ...data }); // 항상 새로운 객체로 할당
         }
       });
 

@@ -55,11 +55,24 @@ export const deviceApi = {
   },
 
   async installUpdate(uid: string): Promise<{ success: boolean; message?: string }> {
-    const { data } = await api.post('/updates/install', { uid });
-    return {
-      success: data.success,
-      message: data.message || data.error
-    };
+    try {
+      const { data } = await api.post('/updates/install', { uid });
+      return {
+        success: data.success,
+        message: data.message || data.error
+      };
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return {
+          success: false,
+          message: error.response.data.message || error.response.data.error || '설치 중 알 수 없는 오류'
+        };
+      }
+      return {
+        success: false,
+        message: '네트워크 오류 또는 서버에 접근할 수 없습니다'
+      };
+    }
   },
 
   async purchaseUpdate(uid: string, price: number): Promise<{ success: boolean; message?: string }> {
@@ -73,14 +86,14 @@ export const deviceApi = {
         message: data.message || data.error
       };
     } catch (error: any) {
-      // 일반적인 구매 실패 에러 처리
-      if (error.response?.status === 500) {
+      // 백엔드에서 에러 메시지를 응답한 경우 우선 반환
+      const backendError = error.response?.data?.error || error.response?.data?.message;
+      if (backendError) {
         return {
           success: false,
-          message: '업데이트 구매 중 오류가 발생했습니다.'
+          message: backendError
         };
       }
-      
       // 네트워크 오류나 기타 오류
       return {
         success: false,

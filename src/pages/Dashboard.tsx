@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useWebSocket } from '../hooks/useWebSocket';
+import { useSetRecoilState } from 'recoil';
+import { useWebSocketContext } from '../hooks/WebSocketContext';
 import { deviceApi } from '../services/deviceApi';
+import { toastsState } from '../store/atoms';
 import UpdatesList from '../components/UpdatesList';
 import Vehicle3DView from '../components/Vehicle3DView';
 import DeviceInfo from '../components/DeviceInfo';
 import { DeviceInfo as IDeviceInfo, Update, UpdateProgress } from '../types/device';
-import ToastContainer, { ToastData } from '../components/shared/ToastContainer';
 
 const Dashboard: React.FC = () => {
   const [deviceInfo, setDeviceInfo] = useState<IDeviceInfo>({
@@ -17,8 +18,8 @@ const Dashboard: React.FC = () => {
     lastUpdate: undefined
   });
   const [updates, setUpdates] = useState<Update[]>([]);
-  const [toasts, setToasts] = useState<ToastData[]>([]);
-  const { lastNotification } = useWebSocket();
+  const { lastNotification } = useWebSocketContext();
+  const setToasts = useSetRecoilState(toastsState);
 
   const loadDeviceInfo = async () => {
     try {
@@ -64,26 +65,22 @@ const Dashboard: React.FC = () => {
 
     if (lastNotification.type === 'new_update' && isUpdateData(lastNotification.data)) {
       console.log('[Dashboard] Creating toast for new update:', lastNotification.data);
-      
-      // 즉시 토스트 생성
       const updateData = lastNotification.data;
-      const toastId = `update-${updateData.uid}-${Date.now()}`;
+      const toastId = `update-${updateData.uid}`;
       const newToast = {
         id: toastId,
-        type: 'info' as const,
-        title: `새로운 업데이트`,
-        message: `버전 ${updateData.version}이 사용 가능합니다\n${updateData.description || ''}`,
-        progress: 0
+        type: 'new' as const,
+        title: `New Update`,
+        message: `새로운 업데이트 ${updateData.uid}가 있습니다.`,
+        progress: 0,
+        showProgress: false,
+        icon: 'bell' as const
       };
-      setToasts(prevToasts => [...prevToasts, newToast]);
-
-      // 목록 갱신
+      setToasts(prevToasts => {
+        if (prevToasts.some(t => t.id === toastId)) return prevToasts;
+        return [...prevToasts, newToast];
+      });
       handleRefresh();
-
-      // 10초 후 토스트 제거
-      setTimeout(() => {
-        setToasts(prevToasts => prevToasts.filter(t => t.id !== toastId));
-      }, 10000);
     }
 
     if (lastNotification.type === 'update_progress' && isUpdateProgressData(lastNotification.data)) {
@@ -141,25 +138,18 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleCloseToast = (id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  };
-
   return (
     <div className="main-frame">
       <Vehicle3DView />
-      
       <div className="bottom-cards">
         <UpdatesList 
           updates={updates} 
           onUpdateInstall={loadDeviceInfo}
           onRefresh={handleRefresh}
         />
-        
         <DeviceInfo info={deviceInfo} />
       </div>
-      
-      <ToastContainer toasts={toasts} onClose={handleCloseToast} />
+      {/* ToastContainer는 App에서만 렌더링 */}
     </div>
   );
 };

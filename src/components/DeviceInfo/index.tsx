@@ -1,11 +1,13 @@
 import React from 'react';
 import { DeviceInfo as IDeviceInfo } from '../../types/device';
+import { formatDateHome } from '../../utils/formatter';
 
 interface DeviceInfoProps {
   info: IDeviceInfo | null;
 }
 
 const DeviceInfo: React.FC<DeviceInfoProps> = ({ info }) => {
+  console.log('DeviceInfo info:', info);
   if (!info) {
     return (
       <div className="card flex flex-col bg-[#fafafa]/80 rounded-md shadow-sm p-6 w-[400px] min-h-[200px] animate-pulse">
@@ -46,7 +48,7 @@ const DeviceInfo: React.FC<DeviceInfoProps> = ({ info }) => {
 
           <span className="device-info-label text-[#2e2e2e] font-medium">Final Update</span>
           <span className="device-info-value text-[#2e2e2e] text-right final-update font-medium">
-            {info.lastUpdate ? new Date(info.lastUpdate).toLocaleDateString() : 'Never'}
+            {info.lastUpdate ? formatDateHome(info.lastUpdate) : 'Never'}
           </span>
         </div>
       </div>
