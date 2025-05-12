@@ -22,6 +22,11 @@ export function UpdateAnimation() {
     
     const interval = setInterval(() => {
       step++;
+      if (step === 2) {  // 블록체인에 업데이트 정보 기록 단계에서
+        setIsAnimating(true);  // 카메라 줌인 시작
+      } else if (step === 3) {  // 다음 단계에서
+        setIsAnimating(false);  // 카메라 원위치
+      }
       setCurrentStep(step);
       
       if (step >= steps.length) {

@@ -6,6 +6,8 @@ import { Html } from '@react-three/drei';
 interface BlockchainProps {
   position?: [number, number, number];
   isAnimating?: boolean;
+  showBlockInfo?: boolean;
+  triggerAnimation?: boolean;
 }
 
 // HTML 라벨 컴포넌트

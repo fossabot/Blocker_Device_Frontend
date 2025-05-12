@@ -370,11 +370,10 @@ body {
 
 .content-overlay {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 20px;
+  left: 20px;
   z-index: 10;
-  text-align: center;
+  text-align: left;
   pointer-events: none;
 }
 
@@ -386,7 +385,7 @@ body {
 
 .description {
   color: white;
-  font-size: 18px;
+  font-size: 16px;
   margin: 20px 0;
   text-align: center;
   transition: opacity 0.3s ease;
