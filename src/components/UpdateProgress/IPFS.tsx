@@ -7,11 +7,13 @@ import type { ParticleSystemProps } from '../../types/three';
 interface IPFSProps {
   position?: [number, number, number];
   isAnimating?: boolean;
+  scale?: number;
 }
 
 export function IPFS({
   position = [15, 0, 0],
-  isAnimating = false
+  isAnimating = false,
+  scale = 1
 }: IPFSProps) {
   const groupRef = useRef<THREE.Group>(null);
   const nodesRef = useRef<THREE.Mesh[]>([]);
@@ -105,7 +107,7 @@ export function IPFS({
   });
 
   return (
-    <group ref={groupRef} position={position}>
+    <group ref={groupRef} position={position} scale={scale}>
       {nodes}
       {connections}
     </group>

@@ -3,9 +3,10 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import gsap from 'gsap';
-import Model from './Model';
+import TeslaModel from './Model';
 import { Blockchain } from './Blockchain';
 import { IPFS } from './IPFS';
+import { Model as RoadModel } from '../Vehicle3DView/RoadModel';
 
 interface SceneProps {
   isAnimating: boolean;
@@ -67,11 +68,11 @@ function CameraController({ isAnimating, onZoomComplete }: { isAnimating: boolea
 
         animationRef.current = timeline;
       } else {
-        // 2.7초 후에 원래 위치로 복귀 (애니메이션 완료 후)
+        // 1.6초 후에 원래 위치로 복귀 (애니메이션 완료 후)
         setTimeout(() => {
           if (initialCam.current) {
             const timeline = gsap.timeline({
-              defaults: { duration: 1.5, ease: "power2.inOut" }
+              defaults: { duration: 1.0, ease: "power2.inOut" }
             });
 
             timeline.to(camera.position, {
@@ -90,7 +91,7 @@ function CameraController({ isAnimating, onZoomComplete }: { isAnimating: boolea
 
             animationRef.current = timeline;
           }
-        }, 2700); // 전체 애니메이션 시간(2.2초) + 약간의 여유(0.5초)
+        }, 1100); // 불빛 이동 애니메이션 시간과 정확히 동기화
       }
     }
 
@@ -165,7 +166,7 @@ export function Scene({ isAnimating }: SceneProps) {
     <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
       <Canvas
         shadows
-        camera={{ position: [0, 10, 55], fov: 45 }}
+        camera={{ position: [-100, 0, 20], fov: 60 }}
         style={{ width: '100%', height: '100%', background: '#0c0c1d' }}
         gl={{
           antialias: true,
@@ -181,21 +182,34 @@ export function Scene({ isAnimating }: SceneProps) {
           gl.localClippingEnabled = true;
         }}
       >
-        <ambientLight intensity={0.3} />
+        <ambientLight intensity={0.6} />
         <directionalLight
           castShadow
-          position={[5, 5, 5]}
-          intensity={0.8}
+          position={[10, 20, 10]}
+          intensity={1}
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
         />
+        <directionalLight
+          position={[-10, 10, -10]}
+          intensity={0.5}
+        />
         <Suspense fallback={null}>
-          <Model scale={0.02} position={[0, -2, 0]} rotation={[0, Math.PI / 2, 0]} />
-          <Blockchain 
-            isAnimating={zoomComplete} 
-            position={[-20, -2, 0]}
+          <RoadModel 
+            scale={0.1} 
+            position={[0, -55, 0]} 
+            rotation={[0, Math.PI / 2, 0]} 
           />
-          <IPFS isAnimating={isAnimating} position={[20, -2, 0]} />
+          <TeslaModel scale={0.1} position={[-20, -5, -5]} rotation={[0, 5 * Math.PI / 6, 0]} />
+          <Blockchain 
+            scale={3.0} 
+            isAnimating={zoomComplete} 
+            position={[-35, 35, -40]}
+          />
+          <IPFS 
+            scale={3.0}
+            isAnimating={isAnimating} 
+            position={[-5, 25, 40]} />
           <Environment preset="city" />
         </Suspense>
         <CameraController 

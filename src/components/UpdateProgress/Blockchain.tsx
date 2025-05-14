@@ -6,6 +6,7 @@ import { Html } from '@react-three/drei';
 interface BlockchainProps {
   position?: [number, number, number];
   isAnimating?: boolean;
+  scale?: number;
 }
 
 interface BlockLabelProps {
@@ -21,7 +22,8 @@ const BlockLabel: React.FC<BlockLabelProps> = ({ text, position }) => (
 
 export function Blockchain({ 
   position = [-15, 0, 0], 
-  isAnimating = false
+  isAnimating = false,
+  scale = 1
 }: BlockchainProps) {
   const groupRef = useRef<THREE.Group>(null);
   const blockRefs = useRef<THREE.Mesh[]>([]);
@@ -206,7 +208,7 @@ export function Blockchain({
         createLightPath();
       }
     } else if (animationPhase.current === 'light') {
-      const totalPathDuration = 2.2; // 전체 경로를 도는 시간 (0.2초 * 11 세그먼트)
+      const totalPathDuration = 1.1;
       const segmentDuration = totalPathDuration / totalLightSegments;
       const elapsedLightTime = elapsedTime;
 
@@ -215,43 +217,51 @@ export function Blockchain({
 
       // 불빛 위치 업데이트
       if (!lightRef.current && groupRef.current) {
-        // 불빛 그룹 생성 및 추가
         const lightGroup = new THREE.Group();
         
-        // 발광하는 중심 구체
+        // 발광하는 중심 구체 (더 작게)
         const coreMesh = new THREE.Mesh(
-          new THREE.SphereGeometry(0.15, 16, 16),
+          new THREE.SphereGeometry(0.04, 16, 16),
           new THREE.MeshBasicMaterial({ color: 0xffffff })
         );
         lightGroup.add(coreMesh);
         
-        // 내부 발광
-        const innerGlowMesh = new THREE.Mesh(
-          new THREE.SphereGeometry(0.4, 32, 32),
+        // 발광 효과 (한 개로 단순화)
+        const glowMesh = new THREE.Mesh(
+          new THREE.SphereGeometry(0.1, 32, 32),
           new THREE.MeshBasicMaterial({
             color: 0x4c7fe0,
             transparent: true,
-            opacity: 0.3
+            opacity: 0.5
           })
         );
-        lightGroup.add(innerGlowMesh);
-        
-        // 외부 발광
-        const outerGlowMesh = new THREE.Mesh(
-          new THREE.SphereGeometry(0.8, 32, 32),
-          new THREE.MeshBasicMaterial({
-            color: 0x4c7fe0,
-            transparent: true,
-            opacity: 0.1
-          })
-        );
-        lightGroup.add(outerGlowMesh);
+        lightGroup.add(glowMesh);
         
         groupRef.current.add(lightGroup);
         lightRef.current = lightGroup;
       }
 
       updateLightPosition();
+
+      // 현재 세그먼트의 선 밝기 조정
+      if (currentLightSegment.current < lineRefs.current.length) {
+        // 전체 선들의 기본 밝기 설정
+        lineRefs.current.forEach((line, index) => {
+          if (line && line.material) {
+            if (index < currentLightSegment.current) {
+              line.material.opacity = 0.4; // 이미 지나간 선은 약간 밝게
+            } else if (index > currentLightSegment.current) {
+              line.material.opacity = 0.2; // 아직 지나지 않은 선은 어둡게
+            }
+          }
+        });
+
+        // 현재 선 매우 밝게 표시
+        const currentLine = lineRefs.current[currentLightSegment.current];
+        if (currentLine && currentLine.material) {
+          currentLine.material.opacity = 0.8; // 현재 선은 가장 밝게
+        }
+      }
 
       // 전체 경로 완료 체크
       if (elapsedLightTime >= totalPathDuration) {
@@ -262,7 +272,7 @@ export function Blockchain({
   });
 
   return (
-    <group ref={groupRef} position={position}>
+    <group ref={groupRef} position={position} scale={scale}>
       {blocks}
       {lines}
       
@@ -290,27 +300,17 @@ export function Blockchain({
         <group ref={lightRef}>
           {/* 발광하는 중심 구체 */}
           <mesh>
-            <sphereGeometry args={[0.15, 16, 16]} />
+            <sphereGeometry args={[0.04, 16, 16]} />
             <meshBasicMaterial color={0xffffff} />
           </mesh>
           
-          {/* 내부 발광 */}
+          {/* 발광 효과 */}
           <mesh>
-            <sphereGeometry args={[0.4, 32, 32]} />
+            <sphereGeometry args={[0.1, 32, 32]} />
             <meshBasicMaterial
               color={0x4c7fe0}
               transparent
-              opacity={0.3}
-            />
-          </mesh>
-          
-          {/* 외부 발광 */}
-          <mesh>
-            <sphereGeometry args={[0.8, 32, 32]} />
-            <meshBasicMaterial
-              color={0x4c7fe0}
-              transparent
-              opacity={0.1}
+              opacity={0.5}
             />
           </mesh>
         </group>
