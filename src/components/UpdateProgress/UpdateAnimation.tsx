@@ -9,11 +9,14 @@ export function UpdateAnimation() {
   const setShowAnimation = useSetRecoilState(showAnimationState);
 
   const steps = [
-    "현재 차량 상태 스캔 중...",
-    "IPFS 네트워크에 업데이트 파일 업로드 중...",
-    "블록체인에 업데이트 정보 기록 중...",
-    "업데이트 검증 진행 중...",
-    "업데이트 완료!"
+    "블록체인에서 업데이트 트랜잭션 감지 중...",
+    "업데이트 구매 트랜잭션 전송 중...",
+    "블록체인에서 암호화 키 및 IPFS 정보 수신 중...",
+    "IPFS에서 암호화된 파일 다운로드 중...",
+    "파일 무결성 검증 중...",
+    "CP-ABE로 대칭키 복호화 중...",
+    "업데이트 파일 복호화 중...",
+    "설치 완료 확인 전송 중..."
   ];
 
   const handleStartAnimation = useCallback(() => {
@@ -22,9 +25,9 @@ export function UpdateAnimation() {
     
     const interval = setInterval(() => {
       step++;
-      if (step === 2) {  // 블록체인에 업데이트 정보 기록 단계에서
+      if (step === 0) {  // 트랜잭션 감지 단계에서
         setIsAnimating(true);  // 카메라 줌인 시작
-      } else if (step === 3) {  // 다음 단계에서
+      } else if (step === 1) {  // 구매 트랜잭션 전송 단계에서
         setIsAnimating(false);  // 카메라 원위치
       }
       setCurrentStep(step);
@@ -66,12 +69,6 @@ export function UpdateAnimation() {
         </div>
 
         <div className="transaction-info">
-          {currentStep >= 1 && (
-            <div className="verification-step active">
-              <span className="hash-value">QmW12XF...</span>
-              IPFS에 업로드 완료
-            </div>
-          )}
           {currentStep >= 2 && (
             <div className="verification-step active">
               트랜잭션 해시:
@@ -79,13 +76,22 @@ export function UpdateAnimation() {
             </div>
           )}
           {currentStep >= 3 && (
+            <div className="verification-step active">
+              CP-ABE 키 및 IPFS 정보 수신됨
+              <div className="hash-info">
+                <span className="hash-label">IPFS 해시:</span>
+                <span className="hash-value">QmW12XF...</span>
+              </div>
+            </div>
+          )}
+          {currentStep >= 5 && (
             <div className="decryption-process">
               <div className="decryption-step active">
-                서명 검증 완료
+                파일 해시 검증 완료
               </div>
               <div className="decryption-arrow">↓</div>
               <div className="decryption-step active">
-                해시값 검증 완료
+                CP-ABE 키로 복호화 진행
               </div>
             </div>
           )}

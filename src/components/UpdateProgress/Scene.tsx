@@ -1,4 +1,4 @@
-import React, { Suspense, useRef, useMemo } from 'react';
+import React, { Suspense, useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
@@ -9,29 +9,20 @@ import { IPFS } from './IPFS';
 
 interface SceneProps {
   isAnimating: boolean;
-  showBlockInfo?: boolean;
 }
 
-function CameraController({ isAnimating, showBlockInfo }: { isAnimating: boolean; showBlockInfo?: boolean }) {
+function CameraController({ isAnimating, onZoomComplete }: { isAnimating: boolean; onZoomComplete: () => void }) {
   const controlsRef = useRef<any>(null);
   const initialCam = useRef<{ position: [number, number, number]; target: [number, number, number] } | null>(null);
-  const prevShowBlockInfo = useRef(showBlockInfo);
   const prevIsAnimating = useRef(isAnimating);
   const animationRef = useRef<gsap.core.Timeline | null>(null);
 
-  // 블록 6의 위치 계산 (고정값)
-  const block6Position = useMemo(() => {
-    const blockIdx = 5;
-    const totalBlocks = 12;
-    const angle = (blockIdx / totalBlocks) * Math.PI * 4;
-    const radius = 7;
-    const x = Math.cos(angle) * radius - 20;
-    const y = -10 + (blockIdx * 1.3) - 2;
-    const z = Math.sin(angle) * radius;
-    return { x, y, z };
-  }, []);
-
-
+  // 블록체인 위치 (카메라가 바라볼 위치)
+  const blockchainPosition = useMemo(() => ({
+    x: -20,  // Blockchain 컴포넌트의 x 위치
+    y: -2,   // Blockchain 컴포넌트의 y 위치
+    z: 0     // Blockchain 컴포넌트의 z 위치
+  }), []);
 
   useFrame(() => {
     if (!controlsRef.current) return;
@@ -54,52 +45,56 @@ function CameraController({ isAnimating, showBlockInfo }: { isAnimating: boolean
       }
 
       if (isAnimating) {
-        // 6번 블록으로 이동
+        // 블록체인 쪽으로 이동
         const timeline = gsap.timeline({
-          defaults: { duration: 1.5, ease: "power2.inOut" }
+          defaults: { duration: 1.5, ease: "power2.inOut" },
+          onComplete: onZoomComplete // 줌인 완료 후 콜백 실행
         });
 
         timeline.to(camera.position, {
-          x: block6Position.x + 6,
-          y: block6Position.y + 3,
-          z: block6Position.z + 6,
+          x: blockchainPosition.x + 15,
+          y: blockchainPosition.y + 10,
+          z: blockchainPosition.z + 15,
           onUpdate: () => controlsRef.current?.update()
         }, 0);
 
         timeline.to(controlsRef.current.target, {
-          x: block6Position.x,
-          y: block6Position.y,
-          z: block6Position.z,
+          x: blockchainPosition.x,
+          y: blockchainPosition.y,
+          z: blockchainPosition.z,
           onUpdate: () => controlsRef.current?.update()
         }, 0);
 
         animationRef.current = timeline;
-      } else if (initialCam.current) {
-        // 원래 위치로 복귀
-        const timeline = gsap.timeline({
-          defaults: { duration: 1.5, ease: "power2.inOut" }
-        });
+      } else {
+        // 2.7초 후에 원래 위치로 복귀 (애니메이션 완료 후)
+        setTimeout(() => {
+          if (initialCam.current) {
+            const timeline = gsap.timeline({
+              defaults: { duration: 1.5, ease: "power2.inOut" }
+            });
 
-        timeline.to(camera.position, {
-          x: initialCam.current.position[0],
-          y: initialCam.current.position[1],
-          z: initialCam.current.position[2],
-          onUpdate: () => controlsRef.current?.update()
-        }, 0);
+            timeline.to(camera.position, {
+              x: initialCam.current.position[0],
+              y: initialCam.current.position[1],
+              z: initialCam.current.position[2],
+              onUpdate: () => controlsRef.current?.update()
+            }, 0);
 
-        timeline.to(controlsRef.current.target, {
-          x: initialCam.current.target[0],
-          y: initialCam.current.target[1],
-          z: initialCam.current.target[2],
-          onUpdate: () => controlsRef.current?.update()
-        }, 0);
+            timeline.to(controlsRef.current.target, {
+              x: initialCam.current.target[0],
+              y: initialCam.current.target[1],
+              z: initialCam.current.target[2],
+              onUpdate: () => controlsRef.current?.update()
+            }, 0);
 
-        animationRef.current = timeline;
+            animationRef.current = timeline;
+          }
+        }, 2700); // 전체 애니메이션 시간(2.2초) + 약간의 여유(0.5초)
       }
     }
 
     prevIsAnimating.current = isAnimating;
-    prevShowBlockInfo.current = showBlockInfo;
   });
 
   return (
@@ -117,33 +112,97 @@ function CameraController({ isAnimating, showBlockInfo }: { isAnimating: boolean
   );
 }
 
-export function Scene({ isAnimating, showBlockInfo }: SceneProps) {
+export function Scene({ isAnimating }: SceneProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [zoomComplete, setZoomComplete] = useState(false);
+
+  useEffect(() => {
+    // 씬 초기화
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xffffff);
+
+    // 조명 설정
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(0, 10, 10);
+    scene.add(directionalLight);
+
+    // 렌더러 설정
+    const renderer = new THREE.WebGLRenderer({ 
+      antialias: true,
+      powerPreference: 'high-performance',
+      alpha: true
+    });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(containerRef.current!.clientWidth, containerRef.current!.clientHeight);
+    containerRef.current!.appendChild(renderer.domElement);
+
+    // 정리 함수
+    return () => {
+      // 렌더러 정리
+      renderer.dispose();
+      
+      // 씬의 모든 객체 정리
+      scene.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          object.geometry.dispose();
+          if (object.material instanceof THREE.Material) {
+            object.material.dispose();
+          }
+        }
+      });
+      
+      // DOM에서 캔버스 제거
+      if (containerRef.current?.contains(renderer.domElement)) {
+        containerRef.current.removeChild(renderer.domElement);
+      }
+    };
+  }, []);
+
   return (
-    <Canvas
-      shadows
-      camera={{ position: [0, 10, 55], fov: 45 }}
-      style={{ width: '100%', height: '100%', background: '#0c0c1d' }}
-    >
-      <ambientLight intensity={0.5} />
-      <directionalLight
-        castShadow
-        position={[5, 5, 5]}
-        intensity={1}
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-      />
-      <Suspense fallback={null}>
-        <Model scale={0.02} position={[0, -2, 0]} rotation={[0, Math.PI / 2, 0]} />
-        <Blockchain 
-          isAnimating={isAnimating} 
-          showBlockInfo={showBlockInfo} 
-          position={[-20, -2, 0]}
-          triggerAnimation={false}
+    <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
+      <Canvas
+        shadows
+        camera={{ position: [0, 10, 55], fov: 45 }}
+        style={{ width: '100%', height: '100%', background: '#0c0c1d' }}
+        gl={{
+          antialias: true,
+          alpha: true,
+          powerPreference: 'default',
+          preserveDrawingBuffer: true,
+          logarithmicDepthBuffer: true,
+          stencil: true
+        }}
+        onCreated={({ gl }) => {
+          gl.setClearColor(0x0c0c1d);
+          gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          gl.localClippingEnabled = true;
+        }}
+      >
+        <ambientLight intensity={0.3} />
+        <directionalLight
+          castShadow
+          position={[5, 5, 5]}
+          intensity={0.8}
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
         />
-        <IPFS isAnimating={isAnimating} position={[20, -2, 0]} />
-        <Environment preset="city" />
-      </Suspense>
-      <CameraController isAnimating={isAnimating} showBlockInfo={showBlockInfo} />
-    </Canvas>
+        <Suspense fallback={null}>
+          <Model scale={0.02} position={[0, -2, 0]} rotation={[0, Math.PI / 2, 0]} />
+          <Blockchain 
+            isAnimating={zoomComplete} 
+            position={[-20, -2, 0]}
+          />
+          <IPFS isAnimating={isAnimating} position={[20, -2, 0]} />
+          <Environment preset="city" />
+        </Suspense>
+        <CameraController 
+          isAnimating={isAnimating} 
+          onZoomComplete={() => setZoomComplete(true)}
+        />
+      </Canvas>
+    </div>
   );
 }

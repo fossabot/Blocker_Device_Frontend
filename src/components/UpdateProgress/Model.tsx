@@ -15,9 +15,12 @@ export default function Model({
   position = [0, -0.5, 0],
   rotation = [0, Math.PI / 2, 0]
 }: ModelProps) {
-  const { scene } = useGLTF('/tesla_2018_model_3/model.glb');
+  const { scene } = useGLTF('/tesla_2018_model_3/scene.gltf');
   const { scene: threeScene } = useThree();
   const groupRef = useRef<Group>(null);
+  
+  // Preload the model
+  useGLTF.preload('/tesla_2018_model_3/scene.gltf');
 
   useEffect(() => {
     if (!scene) return;
