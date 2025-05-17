@@ -1,7 +1,6 @@
-import React, { useRef, useMemo, useEffect, useState } from 'react';
+import { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { Html } from '@react-three/drei';
 
 interface BlockchainProps {
   position?: [number, number, number];
@@ -9,7 +8,7 @@ interface BlockchainProps {
   scale?: number;
 }
 
-interface BlockLabelProps {
+/* interface BlockLabelProps {
   text: string;
   position: [number, number, number];
 }
@@ -18,7 +17,7 @@ const BlockLabel: React.FC<BlockLabelProps> = ({ text, position }) => (
   <Html position={position}>
     <div className="transaction-label">{text}</div>
   </Html>
-);
+); */
 
 export function Blockchain({ 
   position = [-15, 0, 0], 
@@ -39,7 +38,7 @@ export function Blockchain({
   const totalLightSegments = 11; // 12->1번까지 총 11개의 세그먼트
 
   const totalBlocks = 11; // 항상 11개 블록만 표시
-  const activeBlocks = [2, 5, 8]; // 11번 블록은 제외
+  const activeBlocks = [1, 4, 5, 8]; // 2,4,6,9번 블록 (0-based index이므로 1 빼기)
 
   const [blockCreated, setBlockCreated] = useState(false);
 
@@ -135,9 +134,9 @@ export function Blockchain({
             transparent
             opacity={isActive ? 0.8 : 0.5}
           />
-          {isActive && (
+          {/* {isActive && (
             <BlockLabel position={[0, 2, 0]} text={`Block #${i+1}`} />
-          )}
+          )} */}
         </mesh>
       );
 
@@ -198,14 +197,16 @@ export function Blockchain({
       const blockProgress = Math.min(elapsedTime / 1, 1);
       
       lastBlockRef.current.position.copy(lastBlockPosition);
-      lastBlockRef.current.scale.setScalar(blockProgress);
+      lastBlockRef.current.scale.set(blockProgress * 2, blockProgress * 2, blockProgress * 2); // 활성화된 블록과 같은 크기(2배)로 설정
       lastLineRef.current.scale.setScalar(blockProgress);
 
       if (blockProgress === 1) {
         setBlockCreated(true);
-        animationPhase.current = 'light';
-        animationStartTime.current = Date.now();
-        createLightPath();
+        setTimeout(() => {
+          animationPhase.current = 'light';
+          animationStartTime.current = Date.now();
+          createLightPath();
+        }, 2000); // 카메라가 원래 위치로 돌아갈 시간을 주기 위해 2초 대기
       }
     } else if (animationPhase.current === 'light') {
       const totalPathDuration = 1.1;
@@ -214,32 +215,6 @@ export function Blockchain({
 
       currentLightSegment.current = Math.min(Math.floor(elapsedLightTime / segmentDuration), totalLightSegments - 1);
       lightProgress.current = Math.min((elapsedLightTime % segmentDuration) / segmentDuration, 1);
-
-      // 불빛 위치 업데이트
-      if (!lightRef.current && groupRef.current) {
-        const lightGroup = new THREE.Group();
-        
-        // 발광하는 중심 구체 (더 작게)
-        const coreMesh = new THREE.Mesh(
-          new THREE.SphereGeometry(0.04, 16, 16),
-          new THREE.MeshBasicMaterial({ color: 0xffffff })
-        );
-        lightGroup.add(coreMesh);
-        
-        // 발광 효과 (한 개로 단순화)
-        const glowMesh = new THREE.Mesh(
-          new THREE.SphereGeometry(0.1, 32, 32),
-          new THREE.MeshBasicMaterial({
-            color: 0x4c7fe0,
-            transparent: true,
-            opacity: 0.5
-          })
-        );
-        lightGroup.add(glowMesh);
-        
-        groupRef.current.add(lightGroup);
-        lightRef.current = lightGroup;
-      }
 
       updateLightPosition();
 
@@ -280,11 +255,11 @@ export function Blockchain({
       <mesh
         ref={lastBlockRef}
         position={lastBlockPosition}
-        scale={0}
+        scale={[0, 0, 0]}  // 초기 스케일을 벡터로 설정
       >
         <boxGeometry args={[1.5, 1.5, 1.5]} />
         <meshPhongMaterial color={0x4c7fe0} transparent opacity={0.8} />
-        <BlockLabel position={[0, 2, 0]} text="Block #12" />
+        {/* <BlockLabel position={[0, 2, 0]} text="Block #12" /> */}
       </mesh>
       
       <primitive object={new THREE.Line(
@@ -296,25 +271,23 @@ export function Blockchain({
       )} ref={lastLineRef} />
 
       {/* 불빛 효과 */}
-      {animationPhase.current === 'light' && (
-        <group ref={lightRef}>
-          {/* 발광하는 중심 구체 */}
-          <mesh>
-            <sphereGeometry args={[0.04, 16, 16]} />
-            <meshBasicMaterial color={0xffffff} />
-          </mesh>
-          
-          {/* 발광 효과 */}
-          <mesh>
-            <sphereGeometry args={[0.1, 32, 32]} />
-            <meshBasicMaterial
-              color={0x4c7fe0}
-              transparent
-              opacity={0.5}
-            />
-          </mesh>
-        </group>
-      )}
+      <group ref={lightRef} visible={animationPhase.current === 'light'}>
+        {/* 발광하는 중심 구체 */}
+        <mesh>
+          <sphereGeometry args={[0.08, 16, 16]} />
+          <meshBasicMaterial color={0xffffff} />
+        </mesh>
+        
+        {/* 발광 효과 */}
+        <mesh>
+          <sphereGeometry args={[0.2, 32, 32]} />
+          <meshBasicMaterial
+            color={0x4c7fe0}
+            transparent
+            opacity={0.5}
+          />
+        </mesh>
+      </group>
     </group>
   );
 }

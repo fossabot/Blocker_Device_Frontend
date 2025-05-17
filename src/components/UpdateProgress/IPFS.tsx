@@ -19,8 +19,8 @@ export function IPFS({
   const nodesRef = useRef<THREE.Mesh[]>([]);
   const particlesRef = useRef<THREE.Points[]>([]);
 
-  const totalNodes = 8;
-  const activeNodes = [1, 3, 5, 7];
+  const totalNodes = 13; // 15개로 증가
+  const activeNodes = [1, 3, 5, 7, 9, 11, 13]; // 활성 노드도 비례하여 증가
 
   // IPFS 노드와 연결 생성
   const { nodes, connections } = useMemo(() => {
@@ -28,11 +28,12 @@ export function IPFS({
     const connections: JSX.Element[] = [];
 
     for (let i = 0; i < totalNodes; i++) {
-      const angle = (i / totalNodes) * Math.PI * 2;
-      const radius = 5;
+      const angle = (i / totalNodes) * Math.PI * 2 + (Math.random() * 0.5 - 0.25); // 각도에 무작위성 추가
+      const radius = 6 + Math.random() * 2; // 5-7 사이의 무작위 반경
+      const heightScale = 3; // y축 높이 증가
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
-      const y = Math.sin(angle * 2) * 2;
+      const y = Math.sin(angle * 2) * heightScale + (Math.random() * 2 - 1); // 높이에 무작위성 추가
 
       const isActive = activeNodes.includes(i);
       
@@ -90,12 +91,13 @@ export function IPFS({
     nodesRef.current.forEach((node, i) => {
       if (!node) return;
       
-      const angle = (i / totalNodes) * Math.PI * 2;
-      const radius = 5;
-      const flutter = Math.sin(time * 2 + i) * 0.2;
+      const angle = (i / totalNodes) * Math.PI * 2 + (Math.sin(time * 0.5 + i) * 0.1); // 각도에 움직임 추가
+      const radius = 7 + Math.sin(time + i * 1.5) * 0.5; // 반경 움직임
+      const heightScale = 3;
+      const flutter = Math.sin(time * 2 + i) * 0.3;
 
       node.position.x = Math.cos(angle) * (radius + flutter);
-      node.position.y = Math.sin(angle * 2) * 2 + flutter;
+      node.position.y = Math.sin(angle * 2) * heightScale + flutter + Math.sin(time * 1.5 + i) * 0.5;
       node.position.z = Math.sin(angle) * (radius + flutter);
     });
 
