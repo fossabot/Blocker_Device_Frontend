@@ -1,6 +1,6 @@
 import React, { Suspense, useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, OrbitControls } from '@react-three/drei';
+import { Environment, OrbitControls, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import TeslaModel from './Model';
@@ -48,11 +48,15 @@ function Background() {
 function CameraController({ 
   isAnimating, 
   showCarView, 
-  onZoomComplete 
+  onZoomComplete,
+  onCarViewEnter,
+  onReturnToInitialPosition 
 }: { 
   isAnimating: boolean; 
   showCarView?: boolean;
   onZoomComplete: () => void;
+  onCarViewEnter?: () => void;
+  onReturnToInitialPosition?: () => void;
 }) {
   const controlsRef = useRef<any>(null);
   const initialCam = useRef<{ position: [number, number, number]; target: [number, number, number] } | null>(null);
@@ -78,7 +82,36 @@ function CameraController({
         position: [camera.position.x, camera.position.y, camera.position.z],
         target: [controlsRef.current.target.x, controlsRef.current.target.y, controlsRef.current.target.z],
       };
+      console.log('Initial camera position set:', initialCam.current);
     }
+
+    // 초기 위치로 돌아가는 함수
+    const returnToInitialPosition = () => {
+      if (initialCam.current && controlsRef.current) {
+        const timeline = gsap.timeline({
+          defaults: { duration: 2.0, ease: "power2.inOut" },
+          onComplete: () => {
+            onReturnToInitialPosition?.();
+          }
+        });
+
+        timeline.to(controlsRef.current.object.position, {
+          x: initialCam.current.position[0],
+          y: initialCam.current.position[1],
+          z: initialCam.current.position[2],
+          onUpdate: () => controlsRef.current?.update()
+        }, 0);
+
+        timeline.to(controlsRef.current.target, {
+          x: initialCam.current.target[0],
+          y: initialCam.current.target[1],
+          z: initialCam.current.target[2],
+          onUpdate: () => controlsRef.current?.update()
+        }, 0);
+
+        animationRef.current = timeline;
+      }
+    };
 
     // 애니메이션 상태나 자동차 뷰 상태가 변경될 때
     if (isAnimating !== prevIsAnimating.current || showCarView !== prevShowCarView.current) {
@@ -86,6 +119,12 @@ function CameraController({
       if (animationRef.current) {
         animationRef.current.kill();
       }
+      
+      console.log('Animation state changed:', { 
+        isAnimating, 
+        showCarView,
+        prevShowCarView: prevShowCarView.current 
+      });
 
       if (isAnimating) {
         // 블록체인 쪽으로 이동
@@ -137,11 +176,39 @@ function CameraController({
         }, 0);
 
         animationRef.current = timeline;
+      } else if (showCarView === false && prevShowCarView.current === true) {
+        // 초기 위치로 돌아가기
+        console.log('Returning to initial position from car view');
+        if (initialCam.current) {
+          const timeline = gsap.timeline({
+            defaults: { duration: 2.0, ease: "power2.inOut" }
+          });
+
+          timeline.to(camera.position, {
+            x: initialCam.current.position[0],
+            y: initialCam.current.position[1],
+            z: initialCam.current.position[2],
+            onUpdate: () => controlsRef.current?.update()
+          }, 0);
+
+          timeline.to(controlsRef.current.target, {
+            x: initialCam.current.target[0],
+            y: initialCam.current.target[1],
+            z: initialCam.current.target[2],
+            onUpdate: () => controlsRef.current?.update()
+          }, 0);
+
+          animationRef.current = timeline;
+        }
       } else if (showCarView) {
         // 자동차 시점으로 이동
+        console.log('Starting car view animation');
         const timeline = gsap.timeline({
           defaults: { duration: 2.0, ease: "power2.inOut" },
-          onComplete: () => console.log('Reached car interior view')
+          onComplete: () => {
+            console.log('Reached car interior view');
+            onCarViewEnter?.();
+          }
         });
 
         timeline.to(camera.position, {
@@ -181,9 +248,25 @@ function CameraController({
   );
 }
 
-export function Scene({ isAnimating, showCarView }: SceneProps) {
+export function Scene({ isAnimating, showCarView: initialShowCarView }: SceneProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [zoomComplete, setZoomComplete] = useState(false);
+  const [showUpdatePanel, setShowUpdatePanel] = useState(false);
+  const [showCarView, setShowCarView] = useState(initialShowCarView);
+
+  useEffect(() => {
+    setShowCarView(initialShowCarView);
+  }, [initialShowCarView]);
+
+  // 상태 변화 추적을 위한 useEffect
+  useEffect(() => {
+    console.log('State changed:', {
+      showCarView,
+      showUpdatePanel,
+      isAnimating,
+      zoomComplete
+    });
+  }, [showCarView, showUpdatePanel, isAnimating, zoomComplete]);
 
   useEffect(() => {
     // 씬 초기화
@@ -269,7 +352,48 @@ export function Scene({ isAnimating, showCarView }: SceneProps) {
             position={[0, -55, 0]} 
             rotation={[0, Math.PI / 2, 0]} 
           />
-          <TeslaModel scale={0.1} position={[-20, -5, -5]} rotation={[0, (5 * Math.PI / 6) - (Math.PI / 36), 0]} />
+          <group>
+            <TeslaModel scale={0.1} position={[-20, -5, -5]} rotation={[0, (5 * Math.PI / 6) - (Math.PI / 36), 0]} />
+            {/* Render conditions: {showCarView ? 'true' : 'false'}, {showUpdatePanel ? 'true' : 'false'} */}
+            {showCarView && showUpdatePanel && (
+              <Html position={[-21, -3, 5]} rotation={[0, Math.PI - (Math.PI / 6), 0]} transform occlude>
+                <div style={{
+                  background: 'rgba(0, 0, 0, 0.9)',
+                  padding: '15px',
+                  borderRadius: '8px',
+                  color: 'white',
+                  width: '280px',
+                  fontFamily: '-apple-system, sans-serif'
+                }}>
+                  <h3 style={{ margin: '0 0 15px 0' }}>소프트웨어 업데이트</h3>
+                  <p>새로운 업데이트를 시작하시겠습니까?</p>
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                    <button onClick={() => setShowUpdatePanel(false)} style={{
+                      flex: 1,
+                      padding: '8px',
+                      border: '1px solid #666',
+                      borderRadius: '5px',
+                      background: 'transparent',
+                      color: 'white',
+                      cursor: 'pointer'
+                    }}>아니오</button>
+                    <button onClick={() => {
+                      setShowUpdatePanel(false);
+                      setShowCarView(false);
+                    }} style={{
+                      flex: 1,
+                      padding: '8px',
+                      border: 'none',
+                      borderRadius: '5px',
+                      background: '#2563eb',
+                      color: 'white',
+                      cursor: 'pointer'
+                    }}>예</button>
+                  </div>
+                </div>
+              </Html>
+            )}
+          </group>
           <Blockchain 
             scale={2.9} 
             isAnimating={zoomComplete} 
@@ -285,6 +409,10 @@ export function Scene({ isAnimating, showCarView }: SceneProps) {
           isAnimating={isAnimating}
           showCarView={showCarView}
           onZoomComplete={() => setZoomComplete(true)}
+          onCarViewEnter={() => {
+            console.log('Car view entered, showing update panel');
+            setShowUpdatePanel(true);
+          }}
         />
       </Canvas>
     </div>
