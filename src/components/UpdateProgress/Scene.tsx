@@ -11,7 +11,8 @@ import { Model as RoadModel } from '../Vehicle3DView/RoadModel';
 interface SceneProps {
   isAnimating: boolean;
   showCarView?: boolean;
-  blockCreated?: boolean;
+  showBlockchainInfo?: boolean;
+  onReturnToInitial?: () => void;
 }
 
 function Background() {
@@ -45,19 +46,21 @@ function Background() {
   );
 }
 
-function CameraController({ 
+const CameraController = React.forwardRef(({ 
   isAnimating, 
   showCarView, 
+  showBlockchainInfo,
   onZoomComplete,
   onCarViewEnter,
   onReturnToInitialPosition 
 }: { 
   isAnimating: boolean; 
   showCarView?: boolean;
+  showBlockchainInfo?: boolean;
   onZoomComplete: () => void;
   onCarViewEnter?: () => void;
   onReturnToInitialPosition?: () => void;
-}) {
+}, ref) => {
   const controlsRef = useRef<any>(null);
   const initialCam = useRef<{ position: [number, number, number]; target: [number, number, number] } | null>(null);
   const prevIsAnimating = useRef(isAnimating);
@@ -71,23 +74,11 @@ function CameraController({
     z: -45   // Blockchain 컴포넌트의 z 위치
   }), []);
 
-  useFrame(() => {
-    if (!controlsRef.current) return;
-
-    const camera = controlsRef.current.object;
-    
-    // 초기 카메라 위치 저장
-    if (!initialCam.current) {
-      initialCam.current = {
-        position: [camera.position.x, camera.position.y, camera.position.z],
-        target: [controlsRef.current.target.x, controlsRef.current.target.y, controlsRef.current.target.z],
-      };
-      console.log('Initial camera position set:', initialCam.current);
-    }
-
-    // 초기 위치로 돌아가는 함수
-    const returnToInitialPosition = () => {
+  // 외부에서 사용할 수 있도록 returnToInitialView 메서드 노출
+  React.useImperativeHandle(ref, () => ({
+    returnToInitialView: () => {
       if (initialCam.current && controlsRef.current) {
+        const camera = controlsRef.current.object;
         const timeline = gsap.timeline({
           defaults: { duration: 2.0, ease: "power2.inOut" },
           onComplete: () => {
@@ -95,7 +86,7 @@ function CameraController({
           }
         });
 
-        timeline.to(controlsRef.current.object.position, {
+        timeline.to(camera.position, {
           x: initialCam.current.position[0],
           y: initialCam.current.position[1],
           z: initialCam.current.position[2],
@@ -111,7 +102,22 @@ function CameraController({
 
         animationRef.current = timeline;
       }
-    };
+    }
+  }));
+
+  useFrame(() => {
+    if (!controlsRef.current) return;
+
+    const camera = controlsRef.current.object;
+    
+    // 초기 카메라 위치 저장
+    if (!initialCam.current) {
+      initialCam.current = {
+        position: [camera.position.x, camera.position.y, camera.position.z],
+        target: [controlsRef.current.target.x, controlsRef.current.target.y, controlsRef.current.target.z],
+      };
+      console.log('Initial camera position set:', initialCam.current);
+    }
 
     // 애니메이션 상태나 자동차 뷰 상태가 변경될 때
     if (isAnimating !== prevIsAnimating.current || showCarView !== prevShowCarView.current) {
@@ -176,31 +182,7 @@ function CameraController({
         }, 0);
 
         animationRef.current = timeline;
-      } else if (showCarView === false && prevShowCarView.current === true) {
-        // 초기 위치로 돌아가기
-        console.log('Returning to initial position from car view');
-        if (initialCam.current) {
-          const timeline = gsap.timeline({
-            defaults: { duration: 2.0, ease: "power2.inOut" }
-          });
-
-          timeline.to(camera.position, {
-            x: initialCam.current.position[0],
-            y: initialCam.current.position[1],
-            z: initialCam.current.position[2],
-            onUpdate: () => controlsRef.current?.update()
-          }, 0);
-
-          timeline.to(controlsRef.current.target, {
-            x: initialCam.current.target[0],
-            y: initialCam.current.target[1],
-            z: initialCam.current.target[2],
-            onUpdate: () => controlsRef.current?.update()
-          }, 0);
-
-          animationRef.current = timeline;
-        }
-      } else if (showCarView) {
+      } else if (showCarView && !showBlockchainInfo) {
         // 자동차 시점으로 이동
         console.log('Starting car view animation');
         const timeline = gsap.timeline({
@@ -226,6 +208,28 @@ function CameraController({
         }, 0);
 
         animationRef.current = timeline;
+      } else if (showBlockchainInfo) {
+        // 12번 블록이 차량을 향해 움직이는 시점
+        console.log('Moving block to vehicle');
+        const timeline = gsap.timeline({
+          defaults: { duration: 2.0, ease: "power2.inOut" }
+        });
+
+        timeline.to(camera.position, {
+          x: -18,  // 차량 측면에서
+          y: 2,    // 약간 위에서
+          z: -8,   // 차량을 바라보는 위치
+          onUpdate: () => controlsRef.current?.update()
+        }, 0);
+
+        timeline.to(controlsRef.current.target, {
+          x: -20,  // 차량 중앙
+          y: -2,   // 하단부
+          z: 0,    // 중앙을 바라봄
+          onUpdate: () => controlsRef.current?.update()
+        }, 0);
+
+        animationRef.current = timeline;
       }
     }
 
@@ -246,19 +250,21 @@ function CameraController({
       enableDamping={true}
     />
   );
-}
+});
 
-export function Scene({ isAnimating, showCarView: initialShowCarView }: SceneProps) {
+export function Scene({ isAnimating, showCarView: initialShowCarView, showBlockchainInfo, onReturnToInitial }: SceneProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [zoomComplete, setZoomComplete] = useState(false);
   const [showUpdatePanel, setShowUpdatePanel] = useState(false);
   const [showCarView, setShowCarView] = useState(initialShowCarView);
+  const cameraControllerRef = useRef<{
+    returnToInitialView: () => void;
+  }>();
 
   useEffect(() => {
     setShowCarView(initialShowCarView);
   }, [initialShowCarView]);
 
-  // 상태 변화 추적을 위한 useEffect
   useEffect(() => {
     console.log('State changed:', {
       showCarView,
@@ -268,50 +274,18 @@ export function Scene({ isAnimating, showCarView: initialShowCarView }: ScenePro
     });
   }, [showCarView, showUpdatePanel, isAnimating, zoomComplete]);
 
-  useEffect(() => {
-    // 씬 초기화
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xffffff);
-
-    // 조명 설정
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(0, 10, 10);
-    scene.add(directionalLight);
-
-    // 렌더러 설정
-    const renderer = new THREE.WebGLRenderer({ 
-      antialias: true,
-      powerPreference: 'high-performance',
-      alpha: true
-    });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(containerRef.current!.clientWidth, containerRef.current!.clientHeight);
-    containerRef.current!.appendChild(renderer.domElement);
-
-    // 정리 함수
-    return () => {
-      // 렌더러 정리
-      renderer.dispose();
-      
-      // 씬의 모든 객체 정리
-      scene.traverse((object) => {
-        if (object instanceof THREE.Mesh) {
-          object.geometry.dispose();
-          if (object.material instanceof THREE.Material) {
-            object.material.dispose();
-          }
+  const handleUpdateConfirm = () => {
+    setShowUpdatePanel(false);
+    if (cameraControllerRef.current) {
+      cameraControllerRef.current.returnToInitialView();
+      setTimeout(() => {
+        setShowCarView(false);
+        if (onReturnToInitial) {
+          onReturnToInitial();
         }
-      });
-      
-      // DOM에서 캔버스 제거
-      if (containerRef.current?.contains(renderer.domElement)) {
-        containerRef.current.removeChild(renderer.domElement);
-      }
-    };
-  }, []);
+      }, 2000); // 카메라 이동이 완료된 후 상태 변경
+    }
+  };
 
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
@@ -354,7 +328,6 @@ export function Scene({ isAnimating, showCarView: initialShowCarView }: ScenePro
           />
           <group>
             <TeslaModel scale={0.1} position={[-20, -5, -5]} rotation={[0, (5 * Math.PI / 6) - (Math.PI / 36), 0]} />
-            {/* Render conditions: {showCarView ? 'true' : 'false'}, {showUpdatePanel ? 'true' : 'false'} */}
             {showCarView && showUpdatePanel && (
               <Html position={[-21, -3, 5]} rotation={[0, Math.PI - (Math.PI / 6), 0]} transform occlude>
                 <div style={{
@@ -377,10 +350,7 @@ export function Scene({ isAnimating, showCarView: initialShowCarView }: ScenePro
                       color: 'white',
                       cursor: 'pointer'
                     }}>아니오</button>
-                    <button onClick={() => {
-                      setShowUpdatePanel(false);
-                      setShowCarView(false);
-                    }} style={{
+                    <button onClick={handleUpdateConfirm} style={{
                       flex: 1,
                       padding: '8px',
                       border: 'none',
@@ -393,11 +363,80 @@ export function Scene({ isAnimating, showCarView: initialShowCarView }: ScenePro
                 </div>
               </Html>
             )}
+            {/* 블록체인 정보 수신 완료 시 표시되는 패널 */}
+            {showBlockchainInfo && (
+              <Html position={[-50, -12, -30]} rotation={[0, Math.PI + (Math.PI / 1.7), 0]} transform occlude scale={2.5}>
+                <div style={{
+                  background: 'rgba(0, 0, 0, 0.9)',
+                  padding: '25px',
+                  borderRadius: '12px',
+                  color: 'white',
+                  width: '480px',
+                  fontFamily: '-apple-system, sans-serif'
+                }}>
+                  <h3 style={{ margin: '0 0 25px 0', fontSize: '1.4em' }}>업데이트 데이터 검증</h3>
+                  <div style={{ marginBottom: '25px' }}>
+                    <div style={{ marginBottom: '20px' }}>
+                      <div style={{ color: '#9CA3AF', marginBottom: '8px', fontSize: '1.1em' }}>IPFS 해시</div>
+                      <div style={{ 
+                        background: 'rgba(96, 165, 250, 0.1)', 
+                        padding: '12px', 
+                        borderRadius: '8px',
+                        color: '#60A5FA',
+                        fontSize: '1.1em',
+                        fontFamily: 'monospace',
+                        wordBreak: 'break-all'
+                      }}>
+                        QmX8ygh7K4sPhwzFvjNnbFb1pTWKh1QUcNWp7Ny1TYTkxc
+                      </div>
+                    </div>
+                    <div style={{ marginBottom: '12px' }}>
+                      <div style={{ color: '#9CA3AF', marginBottom: '4px', fontSize: '1.1em' }}>업데이트 해시</div>
+                      <div style={{ 
+                        background: 'rgba(96, 165, 250, 0.1)', 
+                        padding: '12px', 
+                        borderRadius: '8px',
+                        color: '#60A5FA',
+                        fontSize: '1.1em',
+                        fontFamily: 'monospace',
+                        wordBreak: 'break-all'
+                      }}>
+                        0x7d3c89f2a95c8ed8d3b96c1c78f3f94c134768f89...
+                      </div>
+                    </div>
+                    <div style={{ marginBottom: '12px' }}>
+                      <div style={{ color: '#9CA3AF', marginBottom: '4px', fontSize: '1.1em' }}>CP-ABE 암호문</div>
+                      <div style={{ 
+                        background: 'rgba(96, 165, 250, 0.1)', 
+                        padding: '12px', 
+                        borderRadius: '8px',
+                        color: '#60A5FA',
+                        fontSize: '1.1em',
+                        fontFamily: 'monospace',
+                        wordBreak: 'break-all'
+                      }}>
+                        eyJDX3RpbGRlIjogIk16cGhTbEJ2UTFWTWIwcE9jbU12...
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: '25px', padding: '16px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '8px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
+                    <div style={{ color: '#22C55E', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2em' }}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17L4 12" stroke="#22C55E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      데이터 무결성 검증 완료
+                    </div>
+                    <div style={{ fontSize: '1.1em', color: '#9CA3AF' }}>모든 데이터가 성공적으로 검증되었습니다.</div>
+                  </div>
+                </div>
+              </Html>
+            )}
           </group>
           <Blockchain 
             scale={2.9} 
             isAnimating={zoomComplete} 
             position={[-30, 35, -45]}
+            showBlockchainInfo={showBlockchainInfo}
           />
           <IPFS 
             scale={3.4}
@@ -406,8 +445,10 @@ export function Scene({ isAnimating, showCarView: initialShowCarView }: ScenePro
           <Environment preset="city" />
         </Suspense>
         <CameraController 
+          ref={cameraControllerRef}
           isAnimating={isAnimating}
           showCarView={showCarView}
+          showBlockchainInfo={showBlockchainInfo}
           onZoomComplete={() => setZoomComplete(true)}
           onCarViewEnter={() => {
             console.log('Car view entered, showing update panel');
