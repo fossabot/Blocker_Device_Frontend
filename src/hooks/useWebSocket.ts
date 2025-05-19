@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { io, Socket as ClientSocket } from 'socket.io-client';
 import { WebSocketNotification } from '../types/device';
 
-const SOCKET_URL = 'http://localhost:5002';
+const SOCKET_URL = 'http://192.168.0.15:5002';
 
 export const useWebSocket = () => {
   const [isConnected, setIsConnected] = useState(false);

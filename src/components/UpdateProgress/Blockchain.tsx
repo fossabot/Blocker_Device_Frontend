@@ -135,10 +135,13 @@ export function Blockchain({
           scale={isActive ? 2 : 1}
         >
           <boxGeometry args={[1.5, 1.5, 1.5]} />
-          <meshPhongMaterial
+          <meshStandardMaterial
             color={isActive ? 0x4c7fe0 : 0x8faee5}
             transparent
-            opacity={isActive ? 0.8 : 0.5}
+            opacity={isActive ? 0.9 : 0.6}
+            metalness={0.3}
+            roughness={0.7}
+            envMapIntensity={0.8}
           />
         </mesh>
       );
@@ -289,7 +292,14 @@ export function Blockchain({
         scale={[0, 0, 0]}
       >
         <boxGeometry args={[1.5, 1.5, 1.5]} />
-        <meshPhongMaterial color={0x4c7fe0} transparent opacity={0.8} />
+        <meshStandardMaterial
+          color={0x4c7fe0}
+          transparent
+          opacity={0.8}
+          metalness={0.3}
+          roughness={0.7}
+          envMapIntensity={0.8}
+        />
       </mesh>
       
       <primitive object={new THREE.Line(
@@ -308,7 +318,14 @@ export function Blockchain({
           scale={[2, 2, 2]}
         >
           <boxGeometry args={[1.5, 1.5, 1.5]} />
-          <meshPhongMaterial color={0x4c7fe0} transparent opacity={0.8} />
+          <meshStandardMaterial
+            color={0x4c7fe0}
+            transparent
+            opacity={0.8}
+            metalness={0.3}
+            roughness={0.7}
+            envMapIntensity={0.8}
+          />
         </mesh>
       )}
 

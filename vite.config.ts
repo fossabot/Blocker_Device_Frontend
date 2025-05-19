@@ -9,7 +9,7 @@ export default defineConfig({
     port: 5173,       // 기본 포트 명시
     proxy: {
       '/api': {
-        target: 'http://localhost:5002',
+        target: 'http://192.168.0.15:5002',
         changeOrigin: true,
         secure: false,
         ws: true,
@@ -26,7 +26,7 @@ export default defineConfig({
         }
       },
       '/socket.io': {
-        target: 'http://localhost:5002',
+        target: 'http://192.168.0.15:5002',
         ws: true,
         changeOrigin: true,
         secure: false,

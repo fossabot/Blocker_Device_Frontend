@@ -1,50 +1,23 @@
 import React, { Suspense, useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, OrbitControls, Html } from '@react-three/drei';
-import * as THREE from 'three';
 import gsap from 'gsap';
 import TeslaModel from './Model';
 import { Blockchain } from './Blockchain';
 import { IPFS } from './IPFS';
 import { Model as RoadModel } from '../Vehicle3DView/RoadModel';
+import SkyModel from './SkyModel';
 
 interface SceneProps {
   isAnimating: boolean;
   showCarView?: boolean;
   showBlockchainInfo?: boolean;
   onReturnToInitial?: () => void;
+  isDownloading?: boolean;
+  onDownloadComplete?: () => void;
 }
 
-function Background() {
-  const uniforms = {
-    topColor: { value: new THREE.Color(0xffffff) },  // 흰색
-    bottomColor: { value: new THREE.Color(0xe2f9fd) }, // 하늘색
-  };
 
-  return (
-      <mesh position={[0, 0, -200]} rotation={[0, -Math.PI / 2, Math.PI / 2]} scale={[9000, 90000, 1]}>
-      <planeGeometry />
-      <shaderMaterial
-        uniforms={uniforms}
-        vertexShader={`
-          varying vec2 vUv;
-          void main() {
-            vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-        `}
-        fragmentShader={`
-          uniform vec3 topColor;
-          uniform vec3 bottomColor;
-          varying vec2 vUv;
-          void main() {
-            gl_FragColor = vec4(mix(bottomColor, topColor, vUv.y), 1.0);
-          }
-        `}
-      />
-    </mesh>
-  );
-}
 
 const CameraController = React.forwardRef(({ 
   isAnimating, 
@@ -247,12 +220,20 @@ const CameraController = React.forwardRef(({
       maxDistance={100}
       minDistance={1}
       dampingFactor={0.05}
+      zoomSpeed={1.2}
       enableDamping={true}
     />
   );
 });
 
-export function Scene({ isAnimating, showCarView: initialShowCarView, showBlockchainInfo, onReturnToInitial }: SceneProps) {
+export function Scene({ 
+  isAnimating, 
+  showCarView: initialShowCarView, 
+  showBlockchainInfo, 
+  onReturnToInitial,
+  isDownloading = false,
+  onDownloadComplete
+}: SceneProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [zoomComplete, setZoomComplete] = useState(false);
   const [showUpdatePanel, setShowUpdatePanel] = useState(false);
@@ -291,7 +272,7 @@ export function Scene({ isAnimating, showCarView: initialShowCarView, showBlockc
     <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
       <Canvas
         shadows
-        camera={{ position: [-100, 0, 20], fov: 60 }}
+        camera={{ position: [-130, 10, 40], fov: 60 }}
         style={{ width: '100%', height: '100%' }}
         gl={{
           antialias: true,
@@ -319,11 +300,11 @@ export function Scene({ isAnimating, showCarView: initialShowCarView, showBlockc
           position={[-10, 10, -10]}
           intensity={0.5}
         />
-        <Background />
+        <SkyModel scale={600} position={[0, -30, 0]} rotation={[-Math.PI/2, 0, 0]} />
         <Suspense fallback={null}>
           <RoadModel 
             scale={0.1} 
-            position={[0, -55, 0]} 
+            position={[3, -55, 0]} 
             rotation={[0, Math.PI / 2, 0]} 
           />
           <group>
@@ -441,7 +422,10 @@ export function Scene({ isAnimating, showCarView: initialShowCarView, showBlockc
           <IPFS 
             scale={3.4}
             isAnimating={isAnimating} 
-            position={[-5, 25, 40]} />
+            position={[-5, 25, 40]}
+            isDownloading={isDownloading}
+            onDownload={onDownloadComplete}
+          />
           <Environment preset="city" />
         </Suspense>
         <CameraController 

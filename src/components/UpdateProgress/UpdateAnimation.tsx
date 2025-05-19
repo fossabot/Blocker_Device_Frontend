@@ -10,6 +10,7 @@ export function UpdateAnimation() {
   const setShowAnimation = useSetRecoilState(showAnimationState);
   const [showBlockchainInfo, setShowBlockchainInfo] = useState(false);
   const [returnedToInitial, setReturnedToInitial] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const [buttonLabel, setButtonLabel] = useState("블록체인으로 이동");
 
@@ -33,9 +34,14 @@ export function UpdateAnimation() {
       console.log('Receiving blockchain information');
       setShowBlockchainInfo(true);
       setCurrentStep(prev => prev + 1);
-      setButtonLabel("완료됨");
+      setButtonLabel("IPFS 다운로드");
     } else if (currentStep === 3) {
-      // 4단계: 완료
+      // 4단계: IPFS 다운로드 시작
+      console.log('Starting IPFS download');
+      setIsDownloading(true);
+      setButtonLabel("다운로드 중...");
+    } else if (currentStep === 4) {
+      // 5단계: 완료
       console.log('Animation sequence complete');
       setCurrentStep(prev => prev + 1);
       setButtonLabel("완료됨");
@@ -51,6 +57,7 @@ export function UpdateAnimation() {
     setShowCarView(false);
     setShowBlockchainInfo(false);
     setReturnedToInitial(false);
+    setIsDownloading(false);
     setCurrentStep(0);
     setButtonLabel("블록체인으로 이동");
   }, []);
@@ -68,6 +75,12 @@ export function UpdateAnimation() {
           showCarView={showCarView}
           showBlockchainInfo={showBlockchainInfo}
           onReturnToInitial={handleReturnToInitial}
+          isDownloading={isDownloading}
+          onDownloadComplete={() => {
+            setIsDownloading(false);
+            setCurrentStep(prev => prev + 1);
+            setButtonLabel("완료됨");
+          }}
         />
       </div>
       
@@ -121,7 +134,7 @@ export function UpdateAnimation() {
         <button 
           id="play-btn" 
           onClick={handleStartAnimation}
-          disabled={currentStep >= 4}
+          disabled={currentStep >= 5 || isDownloading}
         >
           {buttonLabel}
         </button>

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Skybox Beach Cala D' Arena
+* source:	https://sketchfab.com/3d-models/skybox-beach-cala-d-arena-d8965f1ea04a4f6da6b8682e7d8f45bc
+* author:	Isaac Ryan (https://sketchfab.com/djisaacryan)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Skybox Beach Cala D' Arena" (https://sketchfab.com/3d-models/skybox-beach-cala-d-arena-d8965f1ea04a4f6da6b8682e7d8f45bc) by Isaac Ryan (https://sketchfab.com/djisaacryan) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
