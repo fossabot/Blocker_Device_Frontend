@@ -20,7 +20,7 @@ export function IPFS({
   const groupRef = useRef<THREE.Group>(null);
   const nodesRef = useRef<THREE.Mesh[]>([]);
   const transferNodeRef = useRef<THREE.Mesh | null>(null);
-  const transferEndPosition = useRef(new THREE.Vector3(-10, -12, 18)); 
+  const transferEndPosition = useRef(new THREE.Vector3(-10, -10, -9)); 
   const selectedNodeIndex = useRef(6); // 중앙에 위치한 노드
   const animationPhase = useRef<'idle' | 'transfer' | 'complete'>('idle');
   const [showTransferNode, setShowTransferNode] = useState(false);
