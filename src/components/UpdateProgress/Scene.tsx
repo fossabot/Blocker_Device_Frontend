@@ -27,14 +27,15 @@ interface SceneProps {
   onCarDriveStageChange?: (stage: 'idle' | 'back' | 'forward') => void;
 }
 
-const CameraController = React.forwardRef(({ 
+const CameraController = React.forwardRef(({
   isAnimating, 
   showCarView, 
   showBlockchainInfo,
   closeupStage, // 추가
   onZoomComplete,
   onCarViewEnter,
-  onReturnToInitialPosition 
+  onReturnToInitialPosition,
+  carDriveStage // <-- 추가
 }: { 
   isAnimating: boolean; 
   showCarView?: boolean;
@@ -43,6 +44,7 @@ const CameraController = React.forwardRef(({
   onZoomComplete: () => void;
   onCarViewEnter?: () => void;
   onReturnToInitialPosition?: () => void;
+  carDriveStage?: 'idle' | 'back' | 'forward'; // <-- 추가
 }, ref) => {
   const controlsRef = useRef<any>(null);
   const initialCam = useRef<{ position: [number, number, number]; target: [number, number, number] } | null>(null);
@@ -50,6 +52,8 @@ const CameraController = React.forwardRef(({
   const prevShowCarView = useRef(showCarView);
   const animationRef = useRef<gsap.core.Timeline | null>(null);
   const isInitialRender = useRef(true);
+  // 카메라 forward 애니메이션용 ref
+  const carForwardStartRef = useRef<number | null>(null);
 
   // 블록체인 위치 (카메라가 바라볼 위치)
   const blockchainPosition = useMemo(() => ({
@@ -115,9 +119,7 @@ const CameraController = React.forwardRef(({
 
   useFrame(() => {
     if (!controlsRef.current) return;
-
     const camera = controlsRef.current.object;
-    
     // 초기 카메라 위치 저장
     if (!initialCam.current) {
       initialCam.current = {
@@ -125,6 +127,36 @@ const CameraController = React.forwardRef(({
         target: [controlsRef.current.target.x, controlsRef.current.target.y, controlsRef.current.target.z],
       };
       console.log('Initial camera position set:', initialCam.current);
+    }
+
+    // 자동차가 앞으로 주행할 때 카메라가 따라가도록
+    if (showCarView && carDriveStage === 'forward') {
+      // 카메라 위치는 초기 위치에서 고정, target만 z축(앞으로)으로만 이동 (x는 그대로)
+      if (!initialCam.current) return;
+      const duration = 1.0;
+      if (carForwardStartRef.current === null) carForwardStartRef.current = performance.now() / 1000;
+      const now = performance.now() / 1000;
+      const elapsed = now - carForwardStartRef.current;
+      const t = Math.min(elapsed / duration, 1);
+      // 카메라 위치는 초기 위치 고정
+      camera.position.set(
+        initialCam.current.position[0],
+        initialCam.current.position[1],
+        initialCam.current.position[2]
+      );
+      // target만 z축(앞으로)으로 크게 이동 (x는 그대로)
+      const targetStart = initialCam.current.target;
+      const targetEnd = [targetStart[0], targetStart[1], targetStart[2] + 60]; // z축만 이동
+      const targetX = targetStart[0];
+      const targetY = targetStart[1];
+      const targetZ = targetStart[2] + (targetEnd[2] - targetStart[2]) * t;
+      controlsRef.current.target.set(targetX, targetY, targetZ);
+      controlsRef.current.update();
+      if (t >= 1) {
+        carForwardStartRef.current = null;
+      }
+    } else {
+      carForwardStartRef.current = null;
     }
 
     // 애니메이션 상태나 자동차 뷰 상태가 변경될 때
@@ -574,6 +606,8 @@ export function Scene({
                           </div>
                         </div>
                       </div>
+                      {/* 데이터 무결성 검증 완료 패널 제거됨 */}
+                      {/*
                       {currentVerificationStage !== 'idle' && (
                         <div style={{ marginTop: '25px', padding: '16px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '8px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
                           <div style={{ color: '#22C55E', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2em' }}>
@@ -585,6 +619,7 @@ export function Scene({
                           <div style={{ fontSize: '1.1em', color: '#9CA3AF' }}>모든 데이터가 성공적으로 검증되었습니다.</div>
                         </div>
                       )}
+                      */}
                     </div>
                   </Html>
                 )}
@@ -675,6 +710,7 @@ export function Scene({
           showCarView={showCarView}
           showBlockchainInfo={showBlockchainInfo}
           closeupStage={closeupStage} // 추가
+          carDriveStage={carDriveStage} // <-- 추가
           onZoomComplete={() => setZoomComplete(true)}
           onCarViewEnter={() => {
             console.log('Car view entered, showing update panel');

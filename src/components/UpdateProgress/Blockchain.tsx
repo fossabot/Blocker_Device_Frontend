@@ -53,7 +53,7 @@ export function Blockchain({
       animationPhase.current = 'transfer';
       animationStartTime.current = Date.now();
     }
-  }, [showBlockchainInfo]);
+  }, [showBlockchainInfo, blockCreated]);
 
   // 빛의 경로 생성
   const createLightPath = () => {
@@ -183,7 +183,29 @@ export function Blockchain({
 
   // 애니메이션
   useFrame(() => {
-    if (!animationStartTime.current || animationPhase.current === 'none' || animationPhase.current === 'complete') return;
+    // 블록들이 항상 살랑살랑 움직이도록
+    const t = Date.now() * 0.001;
+    blockRefs.current.forEach((block, i) => {
+      if (block) {
+        // 각 블록마다 phase 다르게, 진폭/주기 랜덤하게
+        const phase = i * 0.5;
+        const amp = 0.15 + (i % 3) * 0.05;
+        const freq = 0.7 + (i % 2) * 0.2;
+        // 원래 위치에서 살짝 offset
+        const angle = (i / totalBlocks) * Math.PI * 4;
+        const radius = 7;
+        const baseX = Math.cos(angle) * radius;
+        const baseZ = Math.sin(angle) * radius;
+        const baseY = -10 + (i * 1.3);
+        block.position.x = baseX + Math.sin(t * freq + phase) * amp;
+        block.position.y = baseY + Math.cos(t * freq * 0.7 + phase) * amp * 0.5;
+        block.position.z = baseZ + Math.cos(t * freq + phase) * amp;
+      }
+    });
+
+    if (!animationStartTime.current || animationPhase.current === 'none' || animationPhase.current === 'complete') {
+      return;
+    }
 
     const elapsedTime = (Date.now() - animationStartTime.current) / 1000;
 
@@ -228,14 +250,19 @@ export function Blockchain({
 
       if (blockProgress === 1) {
         setBlockCreated(true);
-        setTimeout(() => {
-          animationPhase.current = 'light';
-          animationStartTime.current = Date.now();
-          createLightPath();
-        }, 2000); // 카메라가 원래 위치로 돌아갈 시간을 주기 위해 2초 대기
+        // 빛 이동 애니메이션을 12번 블록 생성 직후 바로 시작
+        animationPhase.current = 'light';
+        animationStartTime.current = Date.now();
+        createLightPath();
+        // setTimeout(() => {
+        //   animationPhase.current = 'light';
+        //   animationStartTime.current = Date.now();
+        //   createLightPath();
+        // }, 2000); // 카메라가 원래 위치로 돌아갈 시간을 주기 위해 2초 대기 (기존 코드 주석처리)
       }
     } else if (animationPhase.current === 'light') {
-      const totalPathDuration = 1.1;
+      // 불빛 이동 속도를 더 천천히: 기존 1.1초 → 2.2초로 변경
+      const totalPathDuration = 2.2;
       const segmentDuration = totalPathDuration / totalLightSegments;
       const elapsedLightTime = elapsedTime;
 

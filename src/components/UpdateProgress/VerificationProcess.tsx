@@ -58,18 +58,19 @@ export function VerificationProcess({
   }, []);
 
   // --- Device Private Key Animation State (for cpabe-decryption) ---
-  const [keyPhase, setKeyPhase] = useState<'idle' | 'appear' | 'jump1' | 'jump2' | 'move' | 'enter' | 'light' | 'symmetric'>('idle');
+  const [keyPhase, setKeyPhase] = useState<'wait' | 'jump1' | 'jump2' | 'appear' | 'wait2' | 'move' | 'enter' | 'light' | 'symmetric'>('wait');
   const [keyAnimTime, setKeyAnimTime] = useState(0); // seconds since phase start
   const keyAnimRef = useRef<number>(0);
   const keyPhaseStart = useRef<number>(0);
 
   // Phase durations (seconds)
   const keyPhaseDurations = {
-    appear: 0.5,
-    jump1: 0.5,
-    jump2: 0.5,
-    move: 0.7,
-    enter: 0.5,
+    wait: 1.0,      // 첫 대기 1초 (2초→1초로 변경)
+    jump1: 0.5,     // 점프1
+    jump2: 0.5,     // 점프2
+    appear: 0.7,    // 포물선 이동(차량→암호문 앞)
+    move: 0.7,      // 포물선 이동(암호문 앞→암호문 내부)
+    enter: 0.5,     // 암호문 안으로 진입
     light: 0.6,
     symmetric: 0.1
   };
@@ -78,14 +79,14 @@ export function VerificationProcess({
   const appearStarted = useRef(false);
   useEffect(() => {
     if (stage !== 'cpabe-decryption') {
-      setKeyPhase('idle');
+      setKeyPhase('wait');
       setKeyAnimTime(0);
       keyPhaseStart.current = 0;
       appearStarted.current = false;
       return;
     }
     if (!appearStarted.current) {
-      setKeyPhase('appear');
+      setKeyPhase('wait');
       setKeyAnimTime(0);
       keyPhaseStart.current = performance.now();
       appearStarted.current = true;
@@ -96,9 +97,10 @@ export function VerificationProcess({
       const elapsed = (now - keyPhaseStart.current) / 1000;
       setKeyAnimTime(elapsed);
       let nextPhase: typeof keyPhase = keyPhase;
-      if (keyPhase === 'appear' && elapsed > keyPhaseDurations.appear) nextPhase = 'jump1';
+      if (keyPhase === 'wait' && elapsed > keyPhaseDurations.wait) nextPhase = 'jump1';
       if (keyPhase === 'jump1' && elapsed > keyPhaseDurations.jump1) nextPhase = 'jump2';
-      if (keyPhase === 'jump2' && elapsed > keyPhaseDurations.jump2) nextPhase = 'move';
+      if (keyPhase === 'jump2' && elapsed > keyPhaseDurations.jump2) nextPhase = 'appear';
+      if (keyPhase === 'appear' && elapsed > keyPhaseDurations.appear) nextPhase = 'move'; // wait2 삭제, 바로 move로
       if (keyPhase === 'move' && elapsed > keyPhaseDurations.move) nextPhase = 'enter';
       if (keyPhase === 'enter' && elapsed > keyPhaseDurations.enter) nextPhase = 'light';
       if (keyPhase === 'light' && elapsed > keyPhaseDurations.light) nextPhase = 'symmetric';
@@ -835,14 +837,18 @@ export function VerificationProcess({
         keyCardRef.current.rotation.y = Math.PI/4 + t * Math.PI * 6;
         symKeyRef.current.rotation.y = t * Math.PI * 6;
       }
-      // 2. 파티클 낙하(더 느리게)
+      // 2. 파티클 낙하(더 빠르게, 더 아래까지)
       if (finalAnim.exploded && carParticlesRef.current) {
         const dt = 1/60;
-        const gravity = 9.8 * 0.2; // 더 약하게(더 오래)
+        const gravity = 9.8 * 0.38; // 기존보다 더 빠르게(0.2→0.38)
         const newParticles = finalAnim.particles.map(p => {
-          let vy = p.vy - gravity*dt; // 더 느린 중력
+          let vy = p.vy - gravity*dt;
           let y = p.y + vy*dt;
-          if (y < -2.5) { y = -5.5; vy = 0; } // 더 아래까지 떨어짐
+          // 더 아래(-2.5→-6.5)까지 떨어지도록
+          if (y < -6.5) {
+            y = -6.5;
+            vy = 0;
+          }
           return { ...p, x: p.x + p.vx*dt, y, z: p.z + p.vz*dt, vy };
         });
         const posArr = carParticlesRef.current.geometry.attributes.position.array;
@@ -961,67 +967,96 @@ export function VerificationProcess({
       {stage === 'cpabe-decryption' && (
         <group ref={lockRef}>
           {/* --- Device Private Key Animation --- */}
-          {/* 개인키(골드키) 애니메이션: 차량 위에서 등장 → 점프 → 구체로 이동 → 구체 안으로 들어가며 사라짐 */}
+          {/* 개인키(골드키) 애니메이션: 1초 대기 → 제자리 점프 2회 → 포물선 이동 → 암호문 안으로 포물선 이동 → 진입 */}
           {(() => {
+            // 위치 계산
             const start: [number, number, number] = [-6, 0.2, 0];
+            const mid: [number, number, number] = [2.2, 1.5, 0]; // 차량 위
+            const inside: [number, number, number] = [3, 1.5, 0]; // 암호문 내부(진입)
             let keyPos: [number, number, number] = start;
-            let keyScale = 0.2; // 더 작게
+            let keyScale = 0.2;
             let keyVisible = false;
             let showKeyCard = false;
+            let cipherScale = 1.0;
+            let cipherVisible = true;
+            let showExploding = false;
+            let keyCardSpin = 0;
 
-            if (keyPhase === 'appear') {
-              // appear phase: 아래에서 차량 위로 포물선
-              const t = Math.min(keyAnimTime / 0.5, 1);
-              const start: [number, number, number] = [-6, 0.2, 0];
-              const end: [number, number, number] = [2.2, 1.5, 0];
-              const mid: [number, number, number] = [
-                (start[0] + end[0]) / 2,
-                Math.max(start[1], end[1]) + 1.5,
-                (start[2] + end[2]) / 2
-              ];
-              keyPos = [
-                (1 - t) * (1 - t) * start[0] + 2 * (1 - t) * t * mid[0] + t * t * end[0],
-                (1 - t) * (1 - t) * start[1] + 2 * (1 - t) * t * mid[1] + t * t * end[1],
-                (1 - t) * (1 - t) * start[2] + 2 * (1 - t) * t * mid[2] + t * t * end[2],
-              ];
-              keyScale = 0.5 + t * 0.06;
+            // 암호문 커짐/터짐/키카드 생성 타이밍 계산
+            if (keyPhase === 'wait') {
+              // 1초 대기: 차량 옆에 정지
+              keyPos = start;
+              keyScale = 0.2;
               keyVisible = true;
+              cipherScale = 1.0;
+              cipherVisible = true;
             } else if (keyPhase === 'jump1') {
-              // 차량 위에서만 점프
-              const t = Math.min(keyAnimTime / 0.5, 1);
-              const base: [number, number, number] = [2.2, 1.5, 0];
-              keyPos = [base[0], base[1] + Math.sin(Math.PI * t) * 0.7, base[2]];
-              keyScale = 0.58;
+              // 제자리 점프1
+              const t = Math.min(keyAnimTime / keyPhaseDurations.jump1, 1);
+              keyPos = [start[0], start[1] + Math.sin(Math.PI * t) * 0.7, start[2]];
+              keyScale = 0.22;
               keyVisible = true;
+              cipherScale = 1.0;
+              cipherVisible = true;
             } else if (keyPhase === 'jump2') {
-              // 차량 위에서만 점프
-              const t = Math.min(keyAnimTime / 0.5, 1);
-              const base: [number, number, number] = [2.2, 1.5, 0];
-              keyPos = [base[0], base[1] + Math.sin(Math.PI * t) * 0.5, base[2]];
-              keyScale = 0.54;
+              // 제자리 점프2
+              const t = Math.min(keyAnimTime / keyPhaseDurations.jump2, 1);
+              keyPos = [start[0], start[1] + Math.sin(Math.PI * t) * 0.5, start[2]];
+              keyScale = 0.21;
               keyVisible = true;
+              cipherScale = 1.0;
+              cipherVisible = true;
+            } else if (keyPhase === 'appear') {
+              // 포물선 이동(차량→암호문 앞)
+              const t = Math.min(keyAnimTime / keyPhaseDurations.appear, 1);
+              // 포물선: start→mid
+              const control: [number, number, number] = [ (start[0]+mid[0])/2, Math.max(start[1], mid[1])+2.0, (start[2]+mid[2])/2 ];
+              keyPos = [
+                (1-t)*(1-t)*start[0] + 2*(1-t)*t*control[0] + t*t*mid[0],
+                (1-t)*(1-t)*start[1] + 2*(1-t)*t*control[1] + t*t*mid[1],
+                (1-t)*(1-t)*start[2] + 2*(1-t)*t*control[2] + t*t*mid[2],
+              ];
+              keyScale = 0.23 + t*0.05;
+              keyVisible = true;
+              cipherScale = 1.0;
+              cipherVisible = true;
             } else if (keyPhase === 'move') {
-              // 차량 위에서 암호문 쪽으로 이동
-              const t = Math.min(keyAnimTime / 0.7, 1);
-              const from: [number, number, number] = [2.2, 1.5, 0];
-              const to: [number, number, number] = [3, 1.5, 0];
-              keyPos = [from[0] + (to[0] - from[0]) * t, from[1], from[2]];
-              keyScale = 0.54 - t * 0.04;
+              // 포물선 이동(암호문 앞→암호문 내부)
+              const t = Math.min(keyAnimTime / keyPhaseDurations.move, 1);
+              // 포물선: mid→inside
+              const control: [number, number, number] = [ (mid[0]+inside[0])/2+0.5, Math.max(mid[1], inside[1])+1.0, (mid[2]+inside[2])/2 ];
+              keyPos = [
+                (1-t)*(1-t)*mid[0] + 2*(1-t)*t*control[0] + t*t*inside[0],
+                (1-t)*(1-t)*mid[1] + 2*(1-t)*t*control[1] + t*t*inside[1],
+                (1-t)*(1-t)*mid[2] + 2*(1-t)*t*control[2] + t*t*inside[2],
+              ];
+              keyScale = 0.28 - t*0.18;
               keyVisible = true;
+              // 암호문이 점점 커짐 (0.3~1.0 구간에서 1.0→1.7까지 커짐)
+              cipherScale = 1.0 + t * 0.7;
+              cipherVisible = true;
             } else if (keyPhase === 'enter') {
-              const t = Math.min(keyAnimTime / 0.5, 1);
-              keyPos = [3, 1.5, 0];
-              keyScale = 0.5 - t * 0.3;
+              // 암호문 내부로 진입하며 사라짐, 암호문은 커지다가 터짐, 키카드 생성
+              const t = Math.min(keyAnimTime / keyPhaseDurations.enter, 1);
+              keyPos = inside;
+              keyScale = 0.1 - t*0.1;
               keyVisible = t < 1;
-            } else if (keyPhase === 'light') {
-              // 암호문과 키가 사라진 자리에 새로운 대칭키가 생성되는 애니메이션
+              // 암호문이 더 커지다가 터짐 (1.7→2.2)
+              cipherScale = 1.7 + t * 0.5;
+              cipherVisible = t < 0.8; // 80%에서 터짐(사라짐)
+              showExploding = t >= 0.8;
+              showKeyCard = t >= 0.7; // 70%부터 키카드 생성
+              keyCardSpin = t; // 0~1까지 증가
+            } else if (keyPhase === 'light' || keyPhase === 'symmetric') {
               keyVisible = false;
               showKeyCard = true;
-            } else if (keyPhase === 'symmetric') {
-              // 대칭키만 남음 (완전히 생성됨)
-              keyVisible = false;
-              showKeyCard = true;
+              showExploding = false;
+              cipherVisible = false;
+              cipherScale = 1.0;
+              keyCardSpin = 1;
             }
+            // 시간 기반 회전값
+            const spin = (typeof window !== 'undefined' ? performance.now() : 0) * 0.002 + keyCardSpin * Math.PI * 1;
             return (
               <>
                 {/* GoldKey(개인키) */}
@@ -1036,10 +1071,45 @@ export function VerificationProcess({
                     />
                   </group>
                 )}
-                {/* KeyCard 생성 */}
+                {/* 암호문 구체 (커지다가 터짐) */}
+                {cipherVisible && (
+                  <group position={[3, 1.5, 0]} scale={[cipherScale, cipherScale, cipherScale]}>
+                    <Sphere
+                      args={[2, 32, 32]}
+                      material={new THREE.MeshStandardMaterial({ 
+                        color: 0xEC4899,
+                        metalness: 0.9,
+                        roughness: 0.1,
+                        emissive: 0xEC4899,
+                        emissiveIntensity: 0.4,
+                        wireframe: false,
+                        transparent: true,
+                        opacity: 0.9
+                      })}
+                    />
+                    <Sphere
+                      args={[2.3, 16, 16]}
+                      material={new THREE.MeshBasicMaterial({
+                        color: 0xFEF3C7,
+                        wireframe: true,
+                        transparent: true,
+                        opacity: 0.5
+                      })}
+                    />
+                  </group>
+                )}
+                {/* 암호문 터지는 효과 (간단한 파티클 등) */}
+                {showExploding && (
+                  <group position={[3, 1.5, 0]}>
+                    {/* 간단한 파티클 효과 등 추가 가능 */}
+                  </group>
+                )}
+                {/* 키카드 생성 및 회전 */}
                 {showKeyCard && (
-                  <group position={[-3, 3.5, 0]} scale={[1.2, 1.2, 1.2]} rotation={[0, Math.PI/4, -Math.PI/2]}>
-                    <KeyCard />
+                  <group position={[1, 3, 0]} rotation={[0, spin, Math.sin(spin)*0.15]}>
+                    <group rotation={[0, Math.PI/4, -Math.PI/2]}> 
+                      <KeyCard />
+                    </group>
                     <pointLight position={[0, 0, 0]} intensity={1.2} distance={6} color={0xFCD34D} />
                   </group>
                 )}
@@ -1048,7 +1118,7 @@ export function VerificationProcess({
           })()}
           {/* --- 기존 CP-ABE 구체 및 라벨 --- */}
           {/* 암호화된 데이터 구체 (CP-ABE 구체) */}
-          {(keyPhase === 'appear' || keyPhase === 'jump1' || keyPhase === 'jump2' || keyPhase === 'move' || keyPhase === 'enter') && (
+          {(stage === 'cpabe-decryption' && keyPhase !== 'light' && keyPhase !== 'symmetric') && (
             <group>
               <Sphere
                 position={[3, 1.5, 0]}

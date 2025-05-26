@@ -87,21 +87,23 @@ export function IPFS({
   useFrame(() => {
     if (!groupRef.current) return;
 
-    // 기본 노드 움직임
-    if (isAnimating) {
-      nodesRef.current.forEach((node, i) => {
-        if (!node) return;
-        
-        const angle = (i / totalNodes) * Math.PI * 2;
-        const radius = 7.5;  // 반경을 초기값과 동일하게 유지
-        const heightScale = 3;  // 높이 스케일도 초기값과 동일하게 유지
-        const x = Math.cos(angle) * radius;
-        const z = Math.sin(angle) * radius;
-        const y = Math.sin(angle * 2) * heightScale;
-
-        node.position.set(x, y, z);
-      });
-    }
+    // 항상 노드 살랑살랑 움직임 적용
+    const t = Date.now() * 0.001;
+    nodesRef.current.forEach((node, i) => {
+      if (!node) return;
+      const phase = i * 0.6;
+      const amp = 0.18 + (i % 3) * 0.04;
+      const freq = 0.8 + (i % 2) * 0.18;
+      const angle = (i / totalNodes) * Math.PI * 2;
+      const radius = 7.5;
+      const heightScale = 3;
+      const baseX = Math.cos(angle) * radius;
+      const baseZ = Math.sin(angle) * radius;
+      const baseY = Math.sin(angle * 2) * heightScale;
+      node.position.x = baseX + Math.sin(t * freq + phase) * amp;
+      node.position.y = baseY + Math.cos(t * freq * 0.7 + phase) * amp * 0.5;
+      node.position.z = baseZ + Math.cos(t * freq + phase) * amp;
+    });
 
     // 다운로드 애니메이션
     if (animationPhase.current === 'transfer' && startTimeRef.current) {
