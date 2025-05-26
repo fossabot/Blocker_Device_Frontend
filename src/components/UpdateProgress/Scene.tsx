@@ -415,6 +415,16 @@ export function Scene({
     }
   };
 
+  React.useEffect(() => {
+    function handleResetCamera() {
+      if (cameraControllerRef.current && cameraControllerRef.current.returnToInitialView) {
+        cameraControllerRef.current.returnToInitialView();
+      }
+    }
+    window.addEventListener('resetCamera', handleResetCamera);
+    return () => window.removeEventListener('resetCamera', handleResetCamera);
+  }, []);
+
   return (
     <div ref={containerRef} style={{ width: '100%', height: '100%' }}>
       <Canvas
@@ -560,7 +570,7 @@ export function Scene({
                             fontFamily: 'monospace',
                             wordBreak: 'break-all'
                           }}>
-                            eyJDX3RpbGRlIjogIk16cGhTbEJ2UTFWTWIwcE9jbU12...
+                            eyJDX3RpbGRlIjogIk16cGhTbEJ2UTFWTUIwcE9jbU12...
                           </div>
                         </div>
                       </div>

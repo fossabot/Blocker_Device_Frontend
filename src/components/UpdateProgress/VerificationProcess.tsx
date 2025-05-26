@@ -13,7 +13,7 @@ interface VerificationProcessProps {
 }
 
 export function VerificationProcess({
-  stage, 
+  stage,
   position = [0, 0, 0],
   scale = 1,
   onCpabeDecryptionComplete
@@ -734,6 +734,127 @@ export function VerificationProcess({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage, keyPhase]);
 
+  // --- 최종 복호화 애니메이션 상태 ---
+  const [finalAnim, setFinalAnim] = useState({ progress: 0, merged: false, exploded: false, particles: [] as {x:number,y:number,z:number,vx:number,vy:number,vz:number}[] });
+  const keyCardRef = useRef<THREE.Group>(null);
+  const symKeyRef = useRef<THREE.Group>(null);
+  const yellowSphereRef = useRef<THREE.Mesh>(null);
+  const carParticlesRef = useRef<THREE.Points>(null);
+  // 파티클 초기화
+  const PARTICLE_COUNT = 120;
+  const [particleGeo] = useState(() => {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(new Array(PARTICLE_COUNT*3).fill(0), 3));
+    return geo;
+  });
+
+  // 애니메이션 진행
+  useEffect(() => {
+    if (stage === 'final-decryption') {
+      setFinalAnim({ progress: 0, merged: false, exploded: false, particles: [] });
+      let raf: number;
+      const start = performance.now();
+      function animate() {
+        const now = performance.now();
+        // 지속시간을 2.8초 → 3.8초로 증가
+        let t = Math.min(1, (now - start) / 3800);
+        setFinalAnim(fa => ({ ...fa, progress: t }));
+        if (t < 1) raf = requestAnimationFrame(animate);
+        else setTimeout(() => setFinalAnim(fa => ({ ...fa, merged: true })), 200); // 합쳐짐
+      }
+      raf = requestAnimationFrame(animate);
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [stage]);
+
+  useEffect(() => {
+    // 합쳐진 후 노란 구 커짐 -> 팡 터짐 -> 파티클 애니메이션
+    if (finalAnim.merged && !finalAnim.exploded) {
+      let grow = 0;
+      let raf: number;
+      // 카메라 시점 초기화
+      if (typeof window !== 'undefined') {
+        const evt = new CustomEvent('resetCamera');
+        window.dispatchEvent(evt);
+      }
+      function growAndExplode() {
+        grow += 0.025; // 더 느리게 커짐 (1.6초)
+        if (yellowSphereRef.current) {
+          yellowSphereRef.current.scale.set(1+grow*6,1+grow*6,1+grow*6);
+        }
+        if (grow < 1.1) {
+          raf = requestAnimationFrame(growAndExplode);
+        } else {
+          // 파티클 생성
+          const particles = Array.from({length:PARTICLE_COUNT}).map(() => {
+            const theta = Math.random()*2*Math.PI;
+            const phi = Math.random()*Math.PI;
+            return {
+              x:0, y:2.5, z:0,
+              vx: Math.sin(phi)*Math.cos(theta)*2 + (Math.random()-0.5)*0.5,
+              vy: Math.abs(Math.cos(phi))*2 + 2 + Math.random()*1.5,
+              vz: Math.sin(phi)*Math.sin(theta)*2 + (Math.random()-0.5)*0.5
+            };
+          });
+          setFinalAnim(fa => ({ ...fa, exploded: true, particles }));
+        }
+      }
+      growAndExplode();
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [finalAnim.merged]);
+
+  // 파티클 낙하 애니메이션
+  useFrame(() => {
+    if (stage === 'final-decryption') {
+      // 1. 키카드/대칭키 이동 및 회전
+      if (!finalAnim.merged && keyCardRef.current && symKeyRef.current) {
+        const t = finalAnim.progress;
+        // 더 오래 돌다가 들어가도록: t가 0~0.7까지는 궤도, 0.7~1에서만 직선 접근
+        let orbitT = Math.min(1, t / 0.7);
+        let approachT = t > 0.7 ? (t - 0.7) / 0.3 : 0;
+        // 궤도 반경
+        const orbitRadius = 3.5 - 2.5 * orbitT; // 점점 줄어듦
+        const orbitAngle = Math.PI/2 + Math.PI * 3 * orbitT; // 1.5바퀴 이상
+        // 궤도 위치
+        let keyCardX = -6 + Math.cos(orbitAngle) * orbitRadius;
+        let keyCardZ = Math.sin(orbitAngle) * orbitRadius;
+        let symKeyX = 3 - Math.cos(orbitAngle) * orbitRadius;
+        let symKeyZ = -Math.sin(orbitAngle) * orbitRadius;
+        // 마지막 30% 구간에서만 직선으로 접근
+        if (t > 0.7) {
+          keyCardX = keyCardX + (0 - keyCardX) * approachT;
+          keyCardZ = keyCardZ + (0 - keyCardZ) * approachT;
+          symKeyX = symKeyX + (0 - symKeyX) * approachT;
+          symKeyZ = symKeyZ + (0 - symKeyZ) * approachT;
+        }
+        keyCardRef.current.position.x = keyCardX;
+        keyCardRef.current.position.z = keyCardZ;
+        symKeyRef.current.position.x = symKeyX;
+        symKeyRef.current.position.z = symKeyZ;
+        keyCardRef.current.rotation.y = Math.PI/4 + t * Math.PI * 6;
+        symKeyRef.current.rotation.y = t * Math.PI * 6;
+      }
+      // 2. 파티클 낙하(더 느리게)
+      if (finalAnim.exploded && carParticlesRef.current) {
+        const dt = 1/60;
+        const gravity = 9.8 * 0.2; // 더 약하게(더 오래)
+        const newParticles = finalAnim.particles.map(p => {
+          let vy = p.vy - gravity*dt; // 더 느린 중력
+          let y = p.y + vy*dt;
+          if (y < -2.5) { y = -5.5; vy = 0; } // 더 아래까지 떨어짐
+          return { ...p, x: p.x + p.vx*dt, y, z: p.z + p.vz*dt, vy };
+        });
+        const posArr = carParticlesRef.current.geometry.attributes.position.array;
+        newParticles.forEach((p,i) => {
+          posArr[i*3]=p.x; posArr[i*3+1]=p.y; posArr[i*3+2]=p.z;
+        });
+        carParticlesRef.current.geometry.attributes.position.needsUpdate = true;
+        setFinalAnim(fa => ({ ...fa, particles: newParticles }));
+      }
+    }
+  });
+
   return (
     <group position={position} scale={scale}>
       {/* 해시 검증 단계 */}
@@ -843,15 +964,10 @@ export function VerificationProcess({
           {/* 개인키(골드키) 애니메이션: 차량 위에서 등장 → 점프 → 구체로 이동 → 구체 안으로 들어가며 사라짐 */}
           {(() => {
             const start: [number, number, number] = [-6, 0.2, 0];
-            const end: [number, number, number] = [2.2, 1.5, 0];
             let keyPos: [number, number, number] = start;
             let keyScale = 0.2; // 더 작게
             let keyVisible = false;
             let showKeyCard = false;
-            let symmetricPos: [number, number, number] = [3, 1.5, 0];
-            let symmetricScale = 0.1;
-            let symmetricOpacity = 0;
-            let symmetricGlow = 0;
 
             if (keyPhase === 'appear') {
               // appear phase: 아래에서 차량 위로 포물선
@@ -901,20 +1017,10 @@ export function VerificationProcess({
               // 암호문과 키가 사라진 자리에 새로운 대칭키가 생성되는 애니메이션
               keyVisible = false;
               showKeyCard = true;
-              symmetricPos = [3, 1.5, 0];
-              // 대칭키가 점점 커지고 밝아짐 (스케일, 투명도, 발광)
-              const t = Math.min(keyAnimTime / 0.6, 1);
-              symmetricScale = 0.1 + t * 1.1;
-              symmetricOpacity = t; // 점점 선명하게
-              symmetricGlow = 1.2 + Math.sin(keyAnimTime * 8) * 0.3;
             } else if (keyPhase === 'symmetric') {
               // 대칭키만 남음 (완전히 생성됨)
               keyVisible = false;
               showKeyCard = true;
-              symmetricPos = [3, 1.5, 0];
-              symmetricScale = 1.2;
-              symmetricOpacity = 1;
-              symmetricGlow = 1.5;
             }
             return (
               <>
@@ -977,206 +1083,88 @@ export function VerificationProcess({
       {/* 최종 파일 복호화 단계 */}
       {stage === 'final-decryption' && (
         <group>
-          {/* 차량 위에 생성된 대칭키 - CP-ABE 복호화 완료 후 생성된 키 */}
-          <group position={[-6, 2.5, 0]}>
-            {/* 키 중심 구체 */}
-            <Sphere
-              args={[1, 20, 20]}
-              material={new THREE.MeshStandardMaterial({ 
-                color: 0xFCD34D,
-                metalness: 0.9,
-                roughness: 0.1,
-                emissive: 0xFCD34D,
-                emissiveIntensity: 0.7,
-                transparent: true,
-                opacity: 0.9
-              })}
-            />
-            
-            {/* 키 외부 와이어프레임 */}
-            <Sphere
-              args={[1.2, 16, 16]}
-              material={new THREE.MeshBasicMaterial({ 
-                color: 0xFEF3C7,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.5
-              })}
-            />
-            
-            {/* 키 내부 발광 */}
-            <pointLight
-              position={[0, 0, 0]}
-              intensity={1.5}
-              distance={5}
-              color={0xFCD34D}
-            />
-          </group>
-
-          <Html position={[-6, 4.5, 0]} center style={{ pointerEvents: 'none' }}>
-            <div style={{
-              background: 'rgba(30,41,59,0.92)',
-              color: '#fff',
-              padding: '2px 10px',
-              borderRadius: '6px',
-              fontSize: '0.95em',
-              fontWeight: 500,
-              border: '1.5px solid #FCD34D',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-              whiteSpace: 'nowrap',
-              pointerEvents: 'none',
-              letterSpacing: '0.01em'
-            }}>대칭키</div>
-          </Html>
-
-          {/* CP-ABE 키가 파일을 복호화하는 모습을 보여주는 3D 모델 */}
-          <group ref={fileModelRef}>
-            {/* 암호화된 파일 기본 모양 - 처음에는 잠겨있는 상태 */}
-            <Box
-              position={[3, 0, 0]}
-              scale={[4, 5, 0.3]}
-              material={new THREE.MeshStandardMaterial({ 
-                color: 0xA855F7,
-                metalness: 0.7,
-                roughness: 0.2,
-                transparent: true,
-                opacity: 0.9,
-                emissive: 0xA855F7,
-                emissiveIntensity: 0.4
-              })}
-            />
-            
-            {/* 파일 내부의 암호화된 데이터 라인 - 복호화되는 모습을 표현 */}
-            {Array.from({ length: 8 }).map((_, i) => (
-              <Box
-                key={i}
-                position={[3, -2 + (i * 0.5), 0.17]}
-                scale={[3, 0.2, 0.05]}
-                material={new THREE.MeshStandardMaterial({ 
-                  color: 0xFFFFFF,
-                  emissive: 0xFFFFFF,
-                  emissiveIntensity: 0.8,
-                  transparent: true,
-                  opacity: 0.8 - (i % 3) * 0.2
-                })}
-              />
-            ))}
-            
-            {/* 복호화 완료 시 나타나는 파일 아이콘 - 사용 가능한 상태를 의미 */}
-            <Box
-              position={[3, 1.8, 0.17]}
-              scale={[1.2, 1.2, 0.05]}
-              material={new THREE.MeshStandardMaterial({ 
-                color: 0xFFFFFF,
-                emissive: 0xFFFFFF,
-                emissiveIntensity: 0.7,
-                transparent: true,
-                opacity: 0.9
-              })}
-            />
-            
-            {/* 복호화 과정의 에너지를 표현하는 내부 발광 */}
-            <pointLight
-              position={[3, 0, 0]}
-              intensity={0.8}
-              distance={3}
-              color={0xA855F7}
-            />
-          </group>
-          
-          <Html position={[3, 4.5, 0]} center style={{ pointerEvents: 'none' }}>
-            <div className="decrypt-label" style={{
-              background: 'rgba(30,41,59,0.92)',
-              color: '#fff',
-              padding: '2px 10px',
-              borderRadius: '6px',
-              fontSize: '0.95em',
-              fontWeight: 500,
-              border: '1.5px solid #A855F7',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-              whiteSpace: 'nowrap',
-              pointerEvents: 'none',
-              letterSpacing: '0.01em'
-            }}>IPFS 파일 복호화 중</div>
-          </Html>
-          
-          {/* CP-ABE에서 얻은 대칭키를 표시하는 레이블 */}
-          <Html position={[-6, -0.5, 0]} center style={{ pointerEvents: 'none' }}>
-            <div className="key-label" style={{
-              background: 'rgba(30,41,59,0.92)',
-              color: '#fff',
-              padding: '2px 10px',
-              borderRadius: '6px',
-              fontSize: '0.95em',
-              fontWeight: 500,
-              border: '1.5px solid #FCD34D',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-              whiteSpace: 'nowrap',
-              pointerEvents: 'none',
-              letterSpacing: '0.01em'
-            }}>차량</div>
-          </Html>
-          
-          {/* 대칭키에서 파일로 이동하는 복호화 에너지를 표현하는 파티클 */}
-          <points ref={particlesRef} geometry={particlesGeometry}>
-            <pointsMaterial
-              vertexColors
-              size={0.2}
-              transparent
-              opacity={0.9}
-              blending={THREE.AdditiveBlending}
-              sizeAttenuation={true}
-              depthWrite={false}
-            />
-          </points>
-          
-          {/* 복호화 진행 상태를 표현하는 내부 발광 링 */}
-          <Sphere
-            position={[3, 1.5, 0]}
-            args={[3, 16, 16]}
-            material={new THREE.MeshBasicMaterial({ 
-              color: 0xA855F7,
-              wireframe: true,
-              transparent: true,
-              opacity: 0.3
-            })}
-          />
-          
-          {/* 복호화 완료 영역을 표현하는 외부 발광 링 */}
-          <Sphere
-            position={[3, 1.5, 0]}
-            args={[4, 20, 20]}
-            material={new THREE.MeshBasicMaterial({ 
-              color: 0xDDD6FE,
-              wireframe: true,
-              transparent: true,
-              opacity: 0.15
-            })}
-          />
-          
-          {/* 복호화 에너지 효과 */}
-          <pointLight
-            position={[3, 1.5, 2]}
-            intensity={1.2}
-            distance={10}
-            color={0xA855F7}
-          />
-          
-          {/* 키 발광 효과 */}
-          <pointLight
-            position={[-6, 2.5, 0]}
-            intensity={1}
-            distance={8}
-            color={0xFCD34D}
-          />
-          
-          {/* 전체 장면 보조 조명 */}
-          <pointLight
-            position={[0, 5, 0]}
-            intensity={0.7}
-            distance={8}
-            color={0xC4B5FD}
-          />
+          {/* 1. 키카드와 대칭키가 서로 회전하며 가까워짐 */}
+          {!finalAnim.merged && (
+            <>
+              <group ref={keyCardRef} position={[-6, 2.5, 0]}>
+                <group scale={[0.3, 0.3, 0.3]} rotation={[0, Math.PI/4, -Math.PI/2]}>
+                  {/* 키카드 크기 확 줄임 */}
+                  <KeyCard />
+                  <pointLight position={[0, 0, 0]} intensity={1.2} distance={6} color={0xFCD34D} />
+                </group>
+                <Html position={[0, 2.2, 0]} center style={{ pointerEvents: 'none' }}>
+                  <div className="key-label" style={{
+                    background: 'rgba(30,41,59,0.92)',
+                    color: '#fff',
+                    padding: '2px 10px',
+                    borderRadius: '6px',
+                    fontSize: '0.95em',
+                    fontWeight: 500,
+                    border: '1.5px solid #FCD34D',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                    whiteSpace: 'nowrap',
+                    pointerEvents: 'none',
+                    letterSpacing: '0.01em'
+                  }}>대칭키</div>
+                </Html>
+              </group>
+              <group ref={symKeyRef} position={[3, 1.5, 0]}>
+                <Sphere
+                  args={[2.2, 32, 32]} // 대칭키 구 확 키움
+                  material={new THREE.MeshStandardMaterial({
+                    color: 0xFCD34D,
+                    metalness: 0.9,
+                    roughness: 0.1,
+                    emissive: 0xFCD34D,
+                    emissiveIntensity: 0.7,
+                    transparent: true,
+                    opacity: 0.9
+                  })}
+                />
+                <Sphere
+                  args={[2.7, 24, 24]} // 대칭키 그리드도 확 키움
+                  material={new THREE.MeshBasicMaterial({
+                    color: 0xFEF3C7,
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.5
+                  })}
+                />
+                <pointLight position={[0, 0, 0]} intensity={1.5} distance={8} color={0xFCD34D} />
+              </group>
+            </>
+          )}
+          {/* 2. 합쳐진 후 노란 구가 커지다가 팡 터짐 */}
+          {finalAnim.merged && !finalAnim.exploded && (
+            <mesh ref={yellowSphereRef} position={[0, 2.0, 0]}>
+              <sphereGeometry args={[1, 24, 24]} />
+              <meshStandardMaterial color={0xFCD34D} metalness={0.9} roughness={0.1} emissive={0xFCD34D} emissiveIntensity={1.2} />
+            </mesh>
+          )}
+          {/* 3. 파티클이 차 위로 내림 */}
+          {finalAnim.exploded && (
+            <points ref={carParticlesRef} geometry={particleGeo} position={[0,0,0]}>
+              <pointsMaterial vertexColors={false} color={0xFCD34D} size={0.28} transparent opacity={0.88} blending={THREE.AdditiveBlending} sizeAttenuation depthWrite={false} />
+            </points>
+          )}
+          {/* 복호화중 라벨: 노란 구가 터지기 전까지만 표시 */}
+          {finalAnim.merged && !finalAnim.exploded && (
+            <Html position={[3, 4.5, 0]} center style={{ pointerEvents: 'none' }}>
+              <div className="decrypt-label" style={{
+                background: 'rgba(30,41,59,0.92)',
+                color: '#fff',
+                padding: '2px 10px',
+                borderRadius: '6px',
+                fontSize: '0.95em',
+                fontWeight: 500,
+                border: '1.5px solid #A855F7',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                whiteSpace: 'nowrap',
+                pointerEvents: 'none',
+                letterSpacing: '0.01em'
+              }}>IPFS 파일 복호화 중</div>
+            </Html>
+          )}
         </group>
       )}
     </group>
