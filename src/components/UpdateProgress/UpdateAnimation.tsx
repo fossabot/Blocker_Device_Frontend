@@ -11,8 +11,25 @@ export function UpdateAnimation() {
   const [showBlockchainInfo, setShowBlockchainInfo] = useState(false);
   const [returnedToInitial, setReturnedToInitial] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [ipfsFileInfo, setIpfsFileInfo] = useState<{
+    cid: string;
+    name: string;
+    size: number;
+  } | undefined>(undefined);
+  const [hidePanels, setHidePanels] = useState(false);
+  const [carDriveStage, setCarDriveStage] = useState<'idle' | 'back' | 'forward'>('idle');
 
   const [buttonLabel, setButtonLabel] = useState("블록체인으로 이동");
+  const [verificationStage, setVerificationStage] = useState<'idle' | 'hash-verification' | 'cpabe-decryption' | 'final-decryption'>('idle');
+
+  const handleVerificationStageChange = useCallback((stage: 'idle' | 'hash-verification' | 'cpabe-decryption' | 'final-decryption') => {
+    setVerificationStage(stage);
+    if (stage === 'idle') {
+      // 모든 검증이 완료됨
+      setCurrentStep(prev => prev + 1);
+      setButtonLabel("완료됨");
+    }
+  }, []);
 
   const handleStartAnimation = useCallback(() => {
     if (currentStep === 0) {
@@ -39,12 +56,43 @@ export function UpdateAnimation() {
       // 4단계: IPFS 다운로드 시작
       console.log('Starting IPFS download');
       setIsDownloading(true);
+      setIpfsFileInfo({
+        cid: "QmX8n7dK3oHNAqYxgkrBq21v7rbYthWQpvhA5KWbVHPEGK",
+        name: "fw_update_v2.5.0.bin",
+        size: 10240306
+      });
       setButtonLabel("다운로드 중...");
     } else if (currentStep === 4) {
-      // 5단계: 완료
-      console.log('Animation sequence complete');
-      setCurrentStep(prev => prev + 1);
-      setButtonLabel("완료됨");
+      // 5단계: 해시 검증 시작
+      console.log('Starting hash verification');
+      setVerificationStage('hash-verification');
+      setButtonLabel("해시 검증 중...");
+      // 2초 후 다음 단계로
+      setTimeout(() => {
+        setCurrentStep(prev => prev + 1);
+        setButtonLabel("CP-ABE 복호화 시작");
+      }, 2000);
+    } else if (currentStep === 5) {
+      // 6단계: CP-ABE 복호화
+      console.log('Starting CP-ABE decryption');
+      setVerificationStage('cpabe-decryption');
+      setButtonLabel("CP-ABE 복호화 중...");
+      // 2초 후 다음 단계로
+      setTimeout(() => {
+        setCurrentStep(prev => prev + 1);
+        setButtonLabel("최종 복호화 시작");
+      }, 2000);
+    } else if (currentStep === 6) {
+      // 7단계: 최종 복호화
+      console.log('Starting final decryption');
+      setVerificationStage('final-decryption');
+      setButtonLabel("최종 복호화 중...");
+      // 2초 후 완료
+      setTimeout(() => {
+        setVerificationStage('idle');
+        setCurrentStep(prev => prev + 1);
+        setButtonLabel("완료됨");
+      }, 2000);
     }
   }, [currentStep, returnedToInitial]);
 
@@ -58,8 +106,12 @@ export function UpdateAnimation() {
     setShowBlockchainInfo(false);
     setReturnedToInitial(false);
     setIsDownloading(false);
+    setIpfsFileInfo(undefined);
     setCurrentStep(0);
     setButtonLabel("블록체인으로 이동");
+    setVerificationStage('idle');
+    setHidePanels(false);
+    setCarDriveStage('idle');
   }, []);
 
   const handleClose = useCallback(() => {
@@ -67,19 +119,34 @@ export function UpdateAnimation() {
     setShowAnimation(false);
   }, [handleReset, setShowAnimation]);
 
+  const handleDone = useCallback(() => {
+    setHidePanels(true);
+    setTimeout(() => {
+      setCarDriveStage('back');
+      setTimeout(() => {
+        setCarDriveStage('forward');
+      }, 600); // 살짝 뒤로 0.6초
+    }, 400); // 패널 사라진 후 0.4초 뒤 시작
+  }, []);
+
   return (
     <div className="update-animation">
       <div className="scene-container">
         <Scene 
           isAnimating={isAnimating} 
           showCarView={showCarView}
-          showBlockchainInfo={showBlockchainInfo}
+          showBlockchainInfo={showBlockchainInfo && !hidePanels}
           onReturnToInitial={handleReturnToInitial}
           isDownloading={isDownloading}
+          ipfsFileInfo={hidePanels ? undefined : ipfsFileInfo}
+          verificationStage={verificationStage}
+          onVerificationStageChange={handleVerificationStageChange}
+          carDriveStage={carDriveStage}
+          onCarDriveStageChange={setCarDriveStage}
           onDownloadComplete={() => {
             setIsDownloading(false);
             setCurrentStep(prev => prev + 1);
-            setButtonLabel("완료됨");
+            setButtonLabel("해시 검증 시작");
           }}
         />
       </div>
@@ -133,8 +200,8 @@ export function UpdateAnimation() {
       <div className="controls">
         <button 
           id="play-btn" 
-          onClick={handleStartAnimation}
-          disabled={currentStep >= 5 || isDownloading}
+          onClick={currentStep >= 7 ? handleDone : handleStartAnimation}
+          disabled={isDownloading}
         >
           {buttonLabel}
         </button>

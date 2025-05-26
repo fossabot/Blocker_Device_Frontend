@@ -1,0 +1,11 @@
+Model Information:
+* title:	Old Gold Key
+* source:	https://sketchfab.com/3d-models/old-gold-key-f5dc85be7a5041af8664c50959c89001
+* author:	3Dee (https://sketchfab.com/mellydeeis)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Old Gold Key" (https://sketchfab.com/3d-models/old-gold-key-f5dc85be7a5041af8664c50959c89001) by 3Dee (https://sketchfab.com/mellydeeis) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

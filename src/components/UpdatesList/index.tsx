@@ -169,9 +169,9 @@ const UpdatesList: React.FC<UpdatesListProps> = ({ updates, onUpdateInstall, onR
   };
 
   return (
-    <div className="card flex flex-col bg-[#fafafa]/80 rounded-md shadow-sm p-6 w-[500px] min-h-[200px] max-h-[250px]">
+    <div className="card flex flex-col bg-[#fafafa]/80 rounded-md shadow-sm p-6 min-h-[300px]" style={{ maxWidth: '1200px', width: '130%', margin: '0 auto' }}>
       <div className="card-header flex justify-between items-center mb-1">
-        <div className="card-title text-lg font-semibold text-[#2e2e2e]">
+        <div className="card-title text-xl font-semibold text-[#2e2e2e]">
           Available Updates
         </div>
         <button 
@@ -192,13 +192,13 @@ const UpdatesList: React.FC<UpdatesListProps> = ({ updates, onUpdateInstall, onR
         {updates.length === 0 ? (
           <div className="text-sm text-gray-500">사용 가능한 업데이트가 없습니다</div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 w-full">
             {updates.map(update => (
-              <div key={`${update.uid}-${update.version}`} className="update-row flex text-sm">
-                <span className="w-52 truncate" title={update.uid}>{update.uid}</span>
-                <span className="w-14 text-left truncate">v.{update.version}</span>
-                <span className="w-20 text-right truncate">{update.price ? `${formatEther(update.price.toString())} ETH` : '-'}</span>
-                <div className="ml-7">
+              <div key={`${update.uid}-${update.version}`} className="update-row flex text-base w-full">
+                <span className="flex-1 truncate" title={update.uid}>{update.uid}</span>
+                <span className="w-20 text-left truncate">v.{update.version}</span>
+                <span className="w-24 text-right truncate">{update.price ? `${formatEther(update.price.toString())} ETH` : '-'}</span>
+                <div className="ml-8 mr-2">
                   {loading === update.uid || update.status === 'installing' ? (
                     <button
                       className="update-btn installing flex items-center justify-center"

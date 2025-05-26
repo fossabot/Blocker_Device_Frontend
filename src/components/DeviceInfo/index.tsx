@@ -21,35 +21,42 @@ const DeviceInfo: React.FC<DeviceInfoProps> = ({ info }) => {
   }
 
   return (
-    <div className="card flex flex-col bg-[#fafafa]/80 rounded-md shadow-sm p-6 w-[400px] min-h-[200px]">
-      <div className="card-title text-lg font-semibold text-[#2e2e2e] mb-4">
+    <div className="card flex flex-col bg-[#fafafa]/80 rounded-md shadow-sm p-6">
+      <div className="card-title text-xl font-semibold text-[#2e2e2e] mb-4">
         Device Information
       </div>
       <div className="card-content overflow-y-auto max-h-[300px]">
-        <div className="device-info-list grid grid-cols-2 gap-2 gap-x-4">
-          <span className="device-info-label text-[#2e2e2e] font-medium">Device ID</span>
-          <span className="device-info-value text-[#2e2e2e] text-right">{info.id}</span>
-
-          <span className="device-info-label text-[#2e2e2e] font-medium">Model</span>
-          <span className="device-info-value text-[#2e2e2e] text-right">{info.model}</span>
-
-          <span className="device-info-label text-[#2e2e2e] font-medium">Serial Number</span>
-          <span className="device-info-value text-[#2e2e2e] text-right">{info.serialNumber}</span>
-
-          <span className="device-info-label text-[#2e2e2e] font-medium">Software Version</span>
-          <span className="device-info-value text-[#2e2e2e] text-right">{info.version}</span>
-
-          <span className="device-info-label text-[#2e2e2e] font-medium">Software Status</span>
-          <span className="device-info-value text-[#2e2e2e] text-right">
-            <span className="status-normal text-[#25cb55] font-semibold">
-              {info.status === 'normal' ? 'Normal' : info.status === 'error' ? 'Error' : 'Updating'}
+        <div className="device-info-list">
+          <div className="device-info-row">
+            <span className="device-info-label text-[#2e2e2e] font-medium">Device ID</span>
+            <span className="device-info-value text-[#2e2e2e] text-right">{info.id}</span>
+          </div>
+          <div className="device-info-row">
+            <span className="device-info-label text-[#2e2e2e] font-medium">Model</span>
+            <span className="device-info-value text-[#2e2e2e] text-right">{info.model}</span>
+          </div>
+          <div className="device-info-row">
+            <span className="device-info-label text-[#2e2e2e] font-medium">Serial Number</span>
+            <span className="device-info-value text-[#2e2e2e] text-right">{info.serialNumber}</span>
+          </div>
+          <div className="device-info-row">
+            <span className="device-info-label text-[#2e2e2e] font-medium">Software Version</span>
+            <span className="device-info-value text-[#2e2e2e] text-right">{info.version}</span>
+          </div>
+          <div className="device-info-row">
+            <span className="device-info-label text-[#2e2e2e] font-medium">Software Status</span>
+            <span className="device-info-value text-[#2e2e2e] text-right">
+              <span className="status-normal text-[#25cb55] font-semibold">
+                {info.status === 'normal' ? 'Normal' : info.status === 'error' ? 'Error' : 'Updating'}
+              </span>
             </span>
-          </span>
-
-          <span className="device-info-label text-[#2e2e2e] font-medium">Final Update</span>
-          <span className="device-info-value text-[#2e2e2e] text-right final-update font-medium">
-            {info.lastUpdate ? formatDateHome(info.lastUpdate) : 'Never'}
-          </span>
+          </div>
+          <div className="device-info-row">
+            <span className="device-info-label text-[#2e2e2e] font-medium">Final Update</span>
+            <span className="device-info-value text-[#2e2e2e] text-right final-update font-medium">
+              {info.lastUpdate ? formatDateHome(info.lastUpdate) : 'Never'}
+            </span>
+          </div>
         </div>
       </div>
     </div>
