@@ -1,0 +1,11 @@
+Model Information:
+* title:	Key Card
+* source:	https://sketchfab.com/3d-models/key-card-559d847c11e74dcca5e569b2bbba33e6
+* author:	NinJOke (https://sketchfab.com/NinJOke)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Key Card" (https://sketchfab.com/3d-models/key-card-559d847c11e74dcca5e569b2bbba33e6) by NinJOke (https://sketchfab.com/NinJOke) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

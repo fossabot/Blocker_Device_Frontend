@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Box, Sphere, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import GoldKey from './GoldKey';
+import KeyCard from './KeyCard';
 
 interface VerificationProcessProps {
   stage: 'hash-verification' | 'cpabe-decryption' | 'final-decryption' | 'idle';
@@ -846,7 +847,7 @@ export function VerificationProcess({
             let keyPos: [number, number, number] = start;
             let keyScale = 0.2; // 더 작게
             let keyVisible = false;
-            let showSymmetric = false;
+            let showKeyCard = false;
             let symmetricPos: [number, number, number] = [3, 1.5, 0];
             let symmetricScale = 0.1;
             let symmetricOpacity = 0;
@@ -899,7 +900,7 @@ export function VerificationProcess({
             } else if (keyPhase === 'light') {
               // 암호문과 키가 사라진 자리에 새로운 대칭키가 생성되는 애니메이션
               keyVisible = false;
-              showSymmetric = true;
+              showKeyCard = true;
               symmetricPos = [3, 1.5, 0];
               // 대칭키가 점점 커지고 밝아짐 (스케일, 투명도, 발광)
               const t = Math.min(keyAnimTime / 0.6, 1);
@@ -909,7 +910,7 @@ export function VerificationProcess({
             } else if (keyPhase === 'symmetric') {
               // 대칭키만 남음 (완전히 생성됨)
               keyVisible = false;
-              showSymmetric = true;
+              showKeyCard = true;
               symmetricPos = [3, 1.5, 0];
               symmetricScale = 1.2;
               symmetricOpacity = 1;
@@ -929,13 +930,11 @@ export function VerificationProcess({
                     />
                   </group>
                 )}
-                {/* 대칭키(구체) */}
-                {showSymmetric && (
-                  <group position={symmetricPos} scale={[symmetricScale, symmetricScale, symmetricScale]}>
-                    <Sphere args={[1, 24, 24]}>
-                      <meshStandardMaterial attach="material" color={0xFCD34D} emissive={0xFCD34D} emissiveIntensity={symmetricGlow} transparent opacity={symmetricOpacity} />
-                    </Sphere>
-                    <pointLight position={[0, 0, 0]} intensity={symmetricGlow * 1.2} distance={6} color={0xFCD34D} />
+                {/* KeyCard 생성 */}
+                {showKeyCard && (
+                  <group position={[-3, 3.5, 0]} scale={[1.2, 1.2, 1.2]} rotation={[0, Math.PI/4, -Math.PI/2]}>
+                    <KeyCard />
+                    <pointLight position={[0, 0, 0]} intensity={1.2} distance={6} color={0xFCD34D} />
                   </group>
                 )}
               </>
@@ -943,81 +942,35 @@ export function VerificationProcess({
           })()}
           {/* --- 기존 CP-ABE 구체 및 라벨 --- */}
           {/* 암호화된 데이터 구체 (CP-ABE 구체) */}
-          <group>
-            <Sphere
-              position={[3, 1.5, 0]}
-              args={[2, 32, 32]}
-              material={new THREE.MeshStandardMaterial({ 
-                color: 0xEC4899,
-                metalness: 0.9,
-                roughness: 0.1,
-                emissive: 0xEC4899,
-                emissiveIntensity: 0.4,
-                wireframe: false,
-                transparent: true,
-                opacity: 0.9
-              })}
-            />
-            {/* 내부 구체 - 더 강한 발광 효과 */}
-            <Sphere
-              position={[3, 1.5, 0]}
-              args={[1.7, 24, 24]}
-              material={new THREE.MeshStandardMaterial({ 
-                color: 0xFF99CC,
-                metalness: 0.9,
-                roughness: 0.1,
-                emissive: 0xFF99CC,
-                emissiveIntensity: 0.7,
-                transparent: true,
-                opacity: 0.7
-              })}
-            />
-            {/* 선으로 이루어진 외부 격자 */}
-            <Sphere
-              position={[3, 1.5, 0]}
-              args={[2.3, 16, 16]}
-              material={new THREE.MeshStandardMaterial({ 
-                color: 0xFFFFFF,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.3,
-                emissive: 0xFFFFFF,
-                emissiveIntensity: 0.2
-              })}
-            />
-          </group>
-          
-          <Html position={[3, 5, 0]} center style={{ pointerEvents: 'none' }}>
-            <div style={{
-              background: 'rgba(30,41,59,0.92)',
-              color: '#fff',
-              padding: '2px 10px',
-              borderRadius: '6px',
-              fontSize: '0.95em',
-              fontWeight: 500,
-              border: '1.5px solid #EC4899',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-              whiteSpace: 'nowrap',
-              pointerEvents: 'none',
-              letterSpacing: '0.01em'
-            }}>CP-ABE 암호문</div>
-          </Html>
-          
-          {/* 중앙 발광 효과를 위한 포인트 라이트 */}
-          <pointLight
-            position={[3, 1.5, 0]}
-            intensity={1.5}
-            distance={8}
-            color={0xEC4899}
-          />
-          
-          {/* 전체 분위기를 위한 포인트 라이트 */}
-          <pointLight
-            position={[0, 5, 0]}
-            intensity={0.8}
-            distance={15}
-            color={0xFFFFFF}
-          />
+          {(keyPhase === 'appear' || keyPhase === 'jump1' || keyPhase === 'jump2' || keyPhase === 'move' || keyPhase === 'enter') && (
+            <group>
+              <Sphere
+                position={[3, 1.5, 0]}
+                args={[2, 32, 32]}
+                material={new THREE.MeshStandardMaterial({ 
+                  color: 0xEC4899,
+                  metalness: 0.9,
+                  roughness: 0.1,
+                  emissive: 0xEC4899,
+                  emissiveIntensity: 0.4,
+                  wireframe: false,
+                  transparent: true,
+                  opacity: 0.9
+                })}
+              />
+              {/* 하얀 격자무늬 wireframe */}
+              <Sphere
+                position={[3, 1.5, 0]}
+                args={[2.3, 16, 16]}
+                material={new THREE.MeshBasicMaterial({
+                  color: 0xFEF3C7,
+                  wireframe: true,
+                  transparent: true,
+                  opacity: 0.5
+                })}
+              />
+            </group>
+          )}
         </group>
       )}
 

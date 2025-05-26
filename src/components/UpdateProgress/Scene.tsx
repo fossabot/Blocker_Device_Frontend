@@ -398,7 +398,7 @@ export function Scene({
       timeout = setTimeout(() => setCloseupStage('none'), 6000);
     } else if (currentVerificationStage === 'final-decryption') {
       setCloseupStage('final');
-      timeout = setTimeout(() => setCloseupStage('none'), 6000);
+      timeout = setTimeout(() => setCloseupStage('none'), 12000); // 12초로 증가
     } else {
       setCloseupStage('none');
     }

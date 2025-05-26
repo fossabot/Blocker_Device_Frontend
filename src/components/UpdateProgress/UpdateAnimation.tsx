@@ -87,12 +87,12 @@ export function UpdateAnimation() {
       console.log('Starting final decryption');
       setVerificationStage('final-decryption');
       setButtonLabel("최종 복호화 중...");
-      // 2초 후 완료
+      // 8초 후 완료 (기존 2초 → 8초)
       setTimeout(() => {
         setVerificationStage('idle');
         setCurrentStep(prev => prev + 1);
         setButtonLabel("완료됨");
-      }, 2000);
+      }, 8000);
     }
   }, [currentStep, returnedToInitial]);
 
