@@ -140,7 +140,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="main-frame">
-      <Vehicle3DView />
+      <Vehicle3DView deviceInfo={deviceInfo} />
       <div className="bottom-cards">
         <UpdatesList 
           updates={updates} 

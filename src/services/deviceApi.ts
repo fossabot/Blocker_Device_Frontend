@@ -17,7 +17,9 @@ export const deviceApi = {
       serialNumber: data.serial,
       version: data.version,
       status: 'normal',
-      lastUpdate: data.lastUpdate
+      lastUpdate: data.lastUpdate, // timestamp
+      lastUpdateUid: data.uid,
+      lastUpdateDescription: data.description
     };
   },
 

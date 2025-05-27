@@ -135,6 +135,7 @@ const UpdatesList: React.FC<UpdatesListProps> = ({ updates, onUpdateInstall, onR
         completed: true
       });
 
+      // 설치 성공 시 즉시 deviceInfo 갱신 (BounceLoader 반영)
       onUpdateInstall?.();
       
     } catch (err) {

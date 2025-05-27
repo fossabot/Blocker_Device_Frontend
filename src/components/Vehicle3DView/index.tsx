@@ -3,8 +3,44 @@ import { useWebSocketContext } from '../../hooks/WebSocketContext';
 import { VehicleStatus } from '../../types/device';
 import { CubeIcon, BellIcon } from '@heroicons/react/24/outline';
 import VehicleLabels from './labels';
+import { DeviceInfo } from '../../types/device';
 
-const Vehicle3DView: React.FC = () => {
+interface UpdateLabelInfo {
+  uid?: string;
+  version?: string;
+  description?: string;
+  active: boolean;
+  position: 'door' | 'engine';
+}
+
+const getUpdateLabelInfo = (deviceInfo: DeviceInfo): UpdateLabelInfo | null => {
+  if (!deviceInfo.lastUpdateUid || !deviceInfo.lastUpdateDescription) return null;
+  const desc = deviceInfo.lastUpdateDescription.toLowerCase();
+  if (desc.includes('stop')) {
+    return null;
+  }
+  if (desc.includes('camera') || desc.includes('obstacle')) {
+    return {
+      uid: deviceInfo.lastUpdateUid,
+      version: deviceInfo.version,
+      description: deviceInfo.lastUpdateDescription,
+      active: true,
+      position: 'door',
+    };
+  }
+  if (desc.includes('zigzag') || desc.includes('straight')) {
+    return {
+      uid: deviceInfo.lastUpdateUid,
+      version: deviceInfo.version,
+      description: deviceInfo.lastUpdateDescription,
+      active: true,
+      position: 'engine',
+    };
+  }
+  return null;
+};
+
+const Vehicle3DView: React.FC<{ deviceInfo?: DeviceInfo }> = ({ deviceInfo }) => {
   const [vehicleStatus, setVehicleStatus] = useState<VehicleStatus>({
     trunkOpen: false,
     doorOpen: false,
@@ -22,6 +58,9 @@ const Vehicle3DView: React.FC = () => {
       }));
     }
   }, [lastNotification]);
+
+  // 업데이트 정보 파싱
+  const updateLabelInfo = deviceInfo ? getUpdateLabelInfo(deviceInfo) : null;
 
   return (
     <div className="main-content">
@@ -57,7 +96,9 @@ const Vehicle3DView: React.FC = () => {
           alt="Car"
           className="w-full h-auto"
         />
-        <VehicleLabels status={vehicleStatus} />
+        <VehicleLabels 
+          updateLabelInfo={updateLabelInfo}
+        />
       </div>
     </div>
   );

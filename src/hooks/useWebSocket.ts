@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { io, Socket as ClientSocket } from 'socket.io-client';
 import { WebSocketNotification } from '../types/device';
 
-const SOCKET_URL = 'http://192.168.0.15:5002';
-
 export const useWebSocket = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [lastNotification, setLastNotification] = useState<WebSocketNotification | null>(null);
@@ -26,9 +24,9 @@ export const useWebSocket = () => {
         return;
       }
 
-      console.log('[WebSocket] 초기화 시작...', SOCKET_URL);
+      console.log('[WebSocket] 초기화 시작...', import.meta.env.VITE_API_URL);
       
-      const socket = io(SOCKET_URL, {
+      const socket = io(import.meta.env.VITE_API_URL, {
         path: '/socket.io',
         transports: ['websocket'],
         reconnection: true,

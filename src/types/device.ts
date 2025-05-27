@@ -4,7 +4,9 @@ export interface DeviceInfo {
   serialNumber: string;
   version: string;
   status: 'normal' | 'error' | 'updating';
-  lastUpdate?: string;
+  lastUpdate?: number;
+  lastUpdateUid?: string;
+  lastUpdateDescription?: string;
 }
 
 export interface VehicleStatus {
