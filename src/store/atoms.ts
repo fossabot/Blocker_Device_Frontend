@@ -26,3 +26,8 @@ export const toastsState = atom<ToastData[]>({
   key: 'toastsState',
   default: [],
 });
+
+export const updatesRefreshTriggerState = atom<number>({
+  key: 'updatesRefreshTriggerState',
+  default: 0,
+});
