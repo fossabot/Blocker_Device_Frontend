@@ -104,9 +104,22 @@ export const useWebSocket = () => {
     }
   }, [isConnected]);
 
+  // 최근 알림 중복 표시 방지: 알림 캐시 추가
+  const shownNotificationKeys = useRef<Set<string>>(new Set());
+
+  const isNotificationShown = useCallback((notification: WebSocketNotification | null) => {
+    if (!notification) return false;
+    // type+data를 key로 사용 (data에 id/hash가 있으면 더 정교하게)
+    const key = notification.type + JSON.stringify(notification.data);
+    if (shownNotificationKeys.current.has(key)) return true;
+    shownNotificationKeys.current.add(key);
+    return false;
+  }, []);
+
   return {
     isConnected,
     lastNotification,
-    sendMessage
+    sendMessage,
+    isNotificationShown
   };
 };

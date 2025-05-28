@@ -18,7 +18,7 @@ const Dashboard: React.FC = () => {
     lastUpdate: undefined
   });
   const [updates, setUpdates] = useState<Update[]>([]);
-  const { lastNotification } = useWebSocketContext();
+  const { lastNotification, isNotificationShown } = useWebSocketContext();
   const setToasts = useSetRecoilState(toastsState);
 
   const loadDeviceInfo = async () => {
@@ -53,7 +53,7 @@ const Dashboard: React.FC = () => {
 
   // WebSocket 알림 처리
   useEffect(() => {
-    if (!lastNotification) return;
+    if (!lastNotification || isNotificationShown(lastNotification)) return;
     
     const isUpdateData = (data: any): data is Update => {
       return 'uid' in data && 'version' in data;
