@@ -137,6 +137,8 @@ const UpdatesList: React.FC<UpdatesListProps> = ({ updates, onUpdateInstall, onR
 
       // 설치 성공 시 즉시 deviceInfo 갱신 (BounceLoader 반영)
       onUpdateInstall?.();
+      // 설치 성공 시 업데이트 목록도 새로고침
+      await onRefresh?.();
       
     } catch (err) {
       if (purchaseInterval) {
@@ -170,7 +172,7 @@ const UpdatesList: React.FC<UpdatesListProps> = ({ updates, onUpdateInstall, onR
   };
 
   return (
-    <div className="card flex flex-col bg-[#fafafa]/80 rounded-md shadow-sm p-6 min-h-[300px]" style={{ maxWidth: '1200px', width: '130%', margin: '0 auto' }}>
+    <div className="card updates-list-card flex flex-col bg-[#fafafa]/80 rounded-md shadow-sm p-6">
       <div className="card-header flex justify-between items-center mb-1">
         <div className="card-title text-xl font-semibold text-[#2e2e2e]">
           Available Updates
