@@ -139,7 +139,7 @@ const Toast: React.FC<ToastProps> = ({
   };
 
   return (
-    <div className="w-80 rounded-lg shadow-md px-3 pt-2 pb-3 bg-white border relative">
+    <div className="toast-box shadow-md bg-white border relative px-3" /* 기존 w-80 등 제거, toast-box로 통일 */>
       <button
         className="absolute -top-1 right-1 text-gray-400 hover:text-gray-600"
         onClick={() => onClose(id)}
@@ -152,14 +152,14 @@ const Toast: React.FC<ToastProps> = ({
             {renderIcon()}
           </div>
           <div className="flex-1 min-w-0 pt-0.5">
-            <p className={`text-base font-semibold truncate ${styles.text}`}>
+            <p className={`toast-title truncate ${styles.text}`}>
               {title || (completed ? "Complete!" : "Updating...")}
             </p>
           </div>
         </div>
         {message && (
           <div className="pl-8">
-            <p className="text-xs text-gray-600">{message}</p>
+            <p className="toast-message text-gray-600">{message}</p>
           </div>
         )}
       </div>

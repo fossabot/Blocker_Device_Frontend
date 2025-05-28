@@ -236,7 +236,8 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   padding: 20px;
   width: 480px;
-  min-height: 300px;
+  max-height: 240px;
+  min-height: 150px;
   display: flex;
   flex-direction: column;
   background: rgba(250, 250, 250, 0.85);
@@ -244,8 +245,39 @@ body {
 }
 
 .card-content {
-  flex: 1;
   overflow-y: auto;
+}
+
+/* Available Updates 카드의 목록 스크롤 고정 */
+.card.updates-list-card .card-content {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* 카드 전체 높이 제한 및 내부 스크롤 - 반응형 */
+.card.updates-list-card {
+  max-height: 400px;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+@media (max-width: 1500px) {
+  .card.updates-list-card {
+    max-height: 220px;
+    height: 350px;
+  }
+  .card.updates-list-card .card-content {
+    max-height: 100%;
+  }
+}
+@media (max-width: 900px) {
+  .card.updates-list-card {
+    max-height: 260px;
+    height: 160px;
+  }
+  .card.updates-list-card .card-content {
+    max-height: 100%;
+  }
 }
 
 .card-title {
@@ -310,7 +342,7 @@ body {
   color: #fff;
   border-radius: 20px;
   padding: 3px 14px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   border: none;
   cursor: pointer;
@@ -517,6 +549,60 @@ body {
   min-width: 260px;
 } */
 
+/* UpdatesList & DeviceInfo 반응형 카드 크기 */
+.card.updates-list-card,
+.card.device-info-card {
+  width: 1700px;
+  max-width: 98vw;
+  min-width: 320px;
+}
+
+@media (max-width: 1800px) {
+  .card.updates-list-card,
+  .card.device-info_card {
+    width: 1000px;
+  }
+}
+
+@media (max-width: 1500px) {
+  .card.updates-list-card,
+  .card.device-info-card {
+    width: 600px;
+    max-width: 900px;
+  }
+}
+
+@media (max-width: 900px) {
+  .card.updates-list-card,
+  .card.device-info-card {
+    width: 98vw;
+    min-width: 220px;
+    padding: 12px;
+  }
+}
+
+/* DeviceInfo 라벨/값 반응형 폰트 크기 */
+.device-info-label {
+  font-size: 0.6em;
+}
+.device-info-value {
+  font-size: 0.6em;
+}
+
+@media (max-width: 1500px) {
+  .device-info-label,
+  .device-info-value {
+    font-size: 0.8em;
+  }
+}
+
+@media (max-width: 900px) {
+  .device-info-label,
+  .device-info-value {
+    font-size: 0.46em;
+  }
+}
+
 /* Responsive styles */
 @media (max-width: 1440px) {
   .bottom-cards {
@@ -613,4 +699,45 @@ body {
   transition: height 0.3s, padding 0.3s;
   display: flex;
   align-items: center;
+}
+
+/* Toast(알림) 박스 반응형 크기 및 폰트 */
+.toast-box {
+  width: 320px;
+  font-size: 1rem;
+  padding-top: 1.2rem;
+  padding-bottom: 1.4rem;
+  border-radius: 0.5rem;
+}
+@media (min-width: 900px) {
+  .toast-box {
+    width: 300px;
+    font-size: 0.8rem;
+    padding-top: 1.1rem;
+    padding-bottom: 1.1rem;
+  }
+}
+@media (min-width: 1500px) {
+  .toast-box {
+    width: 370px;
+    font-size: 0.8rem;
+    padding-top: 1.1rem;
+    padding-bottom: 1.2rem;
+  }
+}
+
+.toast-box .toast-title {
+  font-size: 1.15em;
+  font-weight: 600;
+}
+.toast-box .toast-message {
+  font-size: 0.98em;
+}
+@media (min-width: 1500px) {
+  .toast-box .toast-title {
+    font-size: 1.35em;
+  }
+  .toast-box .toast-message {
+    font-size: 1.13em;
+  }
 }
