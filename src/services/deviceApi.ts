@@ -102,5 +102,12 @@ export const deviceApi = {
         message: '네트워크 오류가 발생했습니다.'
       };
     }
-  }
+  },
+
+  async getNotifications(since?: number | string): Promise<any[]> {
+    // since는 알림 ID 또는 타임스탬프(문자열) 가능
+    const params = since ? { since } : {};
+    const { data } = await axios.get('/api/notifications', { params });
+    return data.notifications || [];
+  },
 };

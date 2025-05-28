@@ -1,13 +1,10 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { useContext } from 'react';
 import { useWebSocket } from './useWebSocket';
 
-const WebSocketContext = createContext<ReturnType<typeof useWebSocket> | null>(null);
+export const WebSocketContext = React.createContext<any>(null);
 
-// 최근 알림 중복 표시 방지: 알림 캐시 추가
-const shownNotificationIds = new Set<string>();
-
-export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
-  const ws = useWebSocket();
+export const WebSocketProvider = ({ children, onMissedNotifications }: any) => {
+  const ws = useWebSocket(onMissedNotifications);
   return (
     <WebSocketContext.Provider value={ws}>
       {children}
