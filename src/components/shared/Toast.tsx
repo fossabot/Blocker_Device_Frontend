@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import type { ToastData } from './ToastContainer';
+import { useSetRecoilState } from 'recoil';
+import { installSuccessTriggerState } from '../../store/atoms';
 
 type ToastProps = ToastData & {
   onClose: (id: string) => void;
@@ -19,6 +21,7 @@ const Toast: React.FC<ToastProps> = ({
   const [currentProgress, setCurrentProgress] = useState(0);
   const prevTypeRef = useRef(type);
   const animationFrameRef = useRef<number>();
+  const setInstallSuccessTrigger = useSetRecoilState(installSuccessTriggerState);
 
   useEffect(() => {
     // 이전 상태가 일반이고 현재 상태가 에러로 변경된 경우
@@ -49,6 +52,11 @@ const Toast: React.FC<ToastProps> = ({
     // 일반적인 진행 상황 업데이트
     else if (type !== 'error') {
       setCurrentProgress(progress);
+    }
+
+    // 설치 완료 토스트가 뜨면 Vehicle3DView에 신호 전달
+    if ((type === 'success' || completed) && id.includes('install-')) {
+      setInstallSuccessTrigger(v => v + 1);
     }
 
     prevTypeRef.current = type;

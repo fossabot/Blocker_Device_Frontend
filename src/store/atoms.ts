@@ -31,3 +31,8 @@ export const updatesRefreshTriggerState = atom<number>({
   key: 'updatesRefreshTriggerState',
   default: 0,
 });
+
+export const installSuccessTriggerState = atom<number>({
+  key: 'installSuccessTriggerState',
+  default: 0,
+});

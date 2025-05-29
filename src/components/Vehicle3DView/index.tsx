@@ -4,8 +4,8 @@ import { VehicleStatus } from '../../types/device';
 import { CubeIcon, BellIcon } from '@heroicons/react/24/outline';
 import VehicleLabels from './labels';
 import { DeviceInfo } from '../../types/device';
-import { useSetRecoilState } from 'recoil';
-import { toastsState } from '../../store/atoms';
+import { useSetRecoilState, useRecoilValue } from 'recoil';
+import { toastsState, installSuccessTriggerState } from '../../store/atoms';
 import { deviceApi } from '../../services/deviceApi';
 
 interface UpdateLabelInfo {
@@ -55,9 +55,12 @@ const Vehicle3DView: React.FC<Vehicle3DViewProps> = ({ deviceInfo, onRefresh }) 
     engineOn: false,
     batteryLevel: 90
   });
+  // 설치 완료 시 D를 10초간 초록색으로 표시
+  const [installedHighlight, setInstalledHighlight] = useState(false);
 
   const { lastNotification, isConnected } = useWebSocketContext();
   const setToasts = useSetRecoilState(toastsState);
+  const installSuccessTrigger = useRecoilValue(installSuccessTriggerState);
 
   useEffect(() => {
     if (lastNotification?.type === 'vehicle_status') {
@@ -66,7 +69,16 @@ const Vehicle3DView: React.FC<Vehicle3DViewProps> = ({ deviceInfo, onRefresh }) 
         ...lastNotification.data as VehicleStatus
       }));
     }
+    // 웹소켓 기반 설치완료 D 하이라이트는 제거 (토스트 기반만 사용)
   }, [lastNotification]);
+
+  useEffect(() => {
+    if (installSuccessTrigger > 0) {
+      setInstalledHighlight(true);
+      const timer = setTimeout(() => setInstalledHighlight(false), 13000);
+      return () => clearTimeout(timer);
+    }
+  }, [installSuccessTrigger]);
 
   // 업데이트 정보 파싱
   const updateLabelInfo = deviceInfo ? getUpdateLabelInfo(deviceInfo) : null;
@@ -106,7 +118,11 @@ const Vehicle3DView: React.FC<Vehicle3DViewProps> = ({ deviceInfo, onRefresh }) 
     <div className="main-content">
       <div className="status-bar">
         <div className="status-row">
-          <div className="gear">P R N D</div>
+          <div className="gear">
+            <span className={installedHighlight ? 'text-black' : 'text-red-500'}>P</span>{' '}
+            R N{' '}
+            <span className={installedHighlight ? 'text-red-500' : 'text-black'}>D</span>
+          </div>
           <div className="battery">
             <div className="battery-bar">
               <div 
