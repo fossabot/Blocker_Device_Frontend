@@ -364,7 +364,7 @@ body {
 /* Update animation styles */
 .update-animation {
   position: fixed;
-  top: 68px; /* navbar 높이만큼 아래로 */
+  top: 80px; /* navbar 높이만큼 아래로 */
   left: 0;
   right: 0;
   bottom: 0;
@@ -719,7 +719,7 @@ body {
 }
 @media (min-width: 1500px) {
   .toast-box {
-    width: 370px;
+    width: 390px;
     font-size: 0.8rem;
     padding-top: 1.1rem;
     padding-bottom: 1.2rem;
