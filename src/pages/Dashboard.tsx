@@ -147,7 +147,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="main-frame">
-      <Vehicle3DView deviceInfo={deviceInfo} />
+      <Vehicle3DView deviceInfo={deviceInfo} onRefresh={handleRefresh} />
       <div className="bottom-cards">
         <UpdatesList 
           updates={updates} 

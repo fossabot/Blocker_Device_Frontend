@@ -21,12 +21,12 @@ const NavBar: React.FC = () => {
         </Link>
       </div>
       <div className="nav-links flex gap-8 mr-20 items-center">
-        <Link to="/" className="nav-link text-[15px] font-medium text-black flex items-center -mt-2 hover:border-b-2 hover:border-black transition-all no-underline">Home</Link>
-        <Link to="/updates" className="nav-link text-[15px] font-medium text-black flex items-center -mt-2 hover:border-b-2 hover:border-black transition-all no-underline">Updates</Link>
-        <Link to="/history" className="nav-link text-[15px] font-medium text-black flex items-center -mt-2 hover:border-b-2 hover:border-black transition-all no-underline">History</Link>
+        <Link to="/" className="nav-link text-[18px] font-medium text-black flex items-center -mt-2 hover:border-b-2 hover:border-black transition-all no-underline">Home</Link>
+        <Link to="/updates" className="nav-link text-[18px] font-medium text-black flex items-center -mt-2 hover:border-b-2 hover:border-black transition-all no-underline">Updates</Link>
+        <Link to="/history" className="nav-link text-[18px] font-medium text-black flex items-center -mt-2 hover:border-b-2 hover:border-black transition-all no-underline">History</Link>
         <div className="flex items-center gap-6">
           <button 
-            className="help-btn bg-black text-white rounded-[20px] px-[18px] py-[7px] text-[15px] font-bold flex items-center -mt-2 mr-4"
+            className="help-btn bg-black text-white rounded-[20px] px-[18px] py-[7px] text-[18px] font-bold flex items-center -mt-2 mr-4"
             onClick={handleHelpClick}
           >
             Help

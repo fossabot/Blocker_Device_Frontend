@@ -4,6 +4,9 @@ import { VehicleStatus } from '../../types/device';
 import { CubeIcon, BellIcon } from '@heroicons/react/24/outline';
 import VehicleLabels from './labels';
 import { DeviceInfo } from '../../types/device';
+import { useSetRecoilState } from 'recoil';
+import { toastsState } from '../../store/atoms';
+import { deviceApi } from '../../services/deviceApi';
 
 interface UpdateLabelInfo {
   uid?: string;
@@ -40,7 +43,12 @@ const getUpdateLabelInfo = (deviceInfo: DeviceInfo): UpdateLabelInfo | null => {
   return null;
 };
 
-const Vehicle3DView: React.FC<{ deviceInfo?: DeviceInfo }> = ({ deviceInfo }) => {
+interface Vehicle3DViewProps {
+  deviceInfo?: DeviceInfo;
+  onRefresh?: () => void;
+}
+
+const Vehicle3DView: React.FC<Vehicle3DViewProps> = ({ deviceInfo, onRefresh }) => {
   const [vehicleStatus, setVehicleStatus] = useState<VehicleStatus>({
     trunkOpen: false,
     doorOpen: false,
@@ -49,6 +57,7 @@ const Vehicle3DView: React.FC<{ deviceInfo?: DeviceInfo }> = ({ deviceInfo }) =>
   });
 
   const { lastNotification, isConnected } = useWebSocketContext();
+  const setToasts = useSetRecoilState(toastsState);
 
   useEffect(() => {
     if (lastNotification?.type === 'vehicle_status') {
@@ -61,6 +70,37 @@ const Vehicle3DView: React.FC<{ deviceInfo?: DeviceInfo }> = ({ deviceInfo }) =>
 
   // 업데이트 정보 파싱
   const updateLabelInfo = deviceInfo ? getUpdateLabelInfo(deviceInfo) : null;
+
+  const handleAlarmClick = async () => {
+    try {
+      // 1. 목록 새로고침 (최신 업데이트 목록 fetch)
+      const updates = await deviceApi.getAvailableUpdates();
+      if (!updates || updates.length === 0) return;
+      // 2. 제일 위(최신) 업데이트로 알림
+      const latest = updates[0];
+      if (!latest?.uid) return;
+      const toastId = `update-${latest.uid}`;
+      setToasts(prev => {
+        if (prev.some(t => t.id === toastId)) return prev;
+        return [
+          ...prev,
+          {
+            id: toastId,
+            type: 'new',
+            title: 'New Update',
+            message: `새로운 업데이트 ${latest.uid}가 있습니다.`,
+            progress: 0,
+            showProgress: false,
+            icon: 'bell'
+          }
+        ];
+      });
+      // 목록 새로고침 트리거
+      onRefresh?.();
+    } catch (e) {
+      // 필요시 에러 토스트 처리
+    }
+  };
 
   return (
     <div className="main-content">
@@ -85,7 +125,7 @@ const Vehicle3DView: React.FC<{ deviceInfo?: DeviceInfo }> = ({ deviceInfo }) =>
             </span>
           </div>
           <div className="alarm pl-1">
-            <BellIcon className="w-7 h-7 text-gray-400" />
+            <BellIcon className="w-7 h-7 text-gray-400 cursor-pointer" onClick={handleAlarmClick} />
           </div>
         </div>
       </div>
