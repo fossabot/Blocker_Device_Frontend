@@ -22,7 +22,7 @@ const getUpdateLabelInfo = (deviceInfo: DeviceInfo): UpdateLabelInfo | null => {
   if (desc.includes('stop')) {
     return null;
   }
-  if (desc.includes('camera') || desc.includes('obstacle')) {
+  if (desc.includes('직진') || desc.includes('straight')) {
     return {
       uid: deviceInfo.lastUpdateUid,
       version: deviceInfo.version,
@@ -31,7 +31,7 @@ const getUpdateLabelInfo = (deviceInfo: DeviceInfo): UpdateLabelInfo | null => {
       position: 'door',
     };
   }
-  if (desc.includes('zigzag') || desc.includes('straight')) {
+  if (desc.includes('zigzag') || desc.includes('지그재그')) {
     return {
       uid: deviceInfo.lastUpdateUid,
       version: deviceInfo.version,

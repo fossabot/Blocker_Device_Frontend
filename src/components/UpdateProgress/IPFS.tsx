@@ -111,7 +111,7 @@ export function IPFS({
       
       if (!transferNodeRef.current) return;
 
-      const transferDuration = 2.0;
+      const transferDuration = 1.5; // 기존 2.0 → 1.5초로 더 빠르게
       const transferProgress = Math.min(elapsedTime / transferDuration, 1);
       
       const easedProgress = 1 - Math.cos(transferProgress * Math.PI / 2);

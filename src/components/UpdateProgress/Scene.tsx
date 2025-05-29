@@ -138,22 +138,39 @@ const CameraController = React.forwardRef(({
       const now = performance.now() / 1000;
       const elapsed = now - carForwardStartRef.current;
       const t = Math.min(elapsed / duration, 1);
-      // 카메라 위치는 초기 위치 고정
       camera.position.set(
         initialCam.current.position[0],
         initialCam.current.position[1],
         initialCam.current.position[2]
       );
-      // target만 z축(앞으로)으로 크게 이동 (x는 그대로)
       const targetStart = initialCam.current.target;
-      const targetEnd = [targetStart[0], targetStart[1], targetStart[2] + 60]; // z축만 이동
+      const targetEnd = [targetStart[0], targetStart[1], targetStart[2] + 60];
       const targetX = targetStart[0];
       const targetY = targetStart[1];
       const targetZ = targetStart[2] + (targetEnd[2] - targetStart[2]) * t;
       controlsRef.current.target.set(targetX, targetY, targetZ);
       controlsRef.current.update();
       if (t >= 1) {
+        // 앞으로 이동이 끝나면 카메라와 타겟을 자연스럽게 초기 위치로 복귀
         carForwardStartRef.current = null;
+        if (initialCam.current) {
+          gsap.to(camera.position, {
+            x: initialCam.current.position[0],
+            y: initialCam.current.position[1],
+            z: initialCam.current.position[2],
+            duration: 1.2,
+            ease: 'power2.inOut',
+            onUpdate: () => controlsRef.current?.update()
+          });
+          gsap.to(controlsRef.current.target, {
+            x: initialCam.current.target[0],
+            y: initialCam.current.target[1],
+            z: initialCam.current.target[2],
+            duration: 1.2,
+            ease: 'power2.inOut',
+            onUpdate: () => controlsRef.current?.update()
+          });
+        }
       }
     } else {
       carForwardStartRef.current = null;

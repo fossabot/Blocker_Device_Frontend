@@ -758,8 +758,8 @@ export function VerificationProcess({
       const start = performance.now();
       function animate() {
         const now = performance.now();
-        // 지속시간을 2.8초 → 3.8초로 증가
-        let t = Math.min(1, (now - start) / 3800);
+        // 지속시간을 2.8초 → 3.3초로 증가
+        let t = Math.min(1, (now - start) / 3000);
         setFinalAnim(fa => ({ ...fa, progress: t }));
         if (t < 1) raf = requestAnimationFrame(animate);
         else setTimeout(() => setFinalAnim(fa => ({ ...fa, merged: true })), 200); // 합쳐짐
@@ -816,7 +816,7 @@ export function VerificationProcess({
         let orbitT = Math.min(1, t / 0.7);
         let approachT = t > 0.7 ? (t - 0.7) / 0.3 : 0;
         // 궤도 반경
-        const orbitRadius = 3.5 - 2.5 * orbitT; // 점점 줄어듦
+        const orbitRadius = 1.35 - 0.95 * orbitT; // 기존보다 0.15씩만 증가
         const orbitAngle = Math.PI/2 + Math.PI * 3 * orbitT; // 1.5바퀴 이상
         // 궤도 위치
         let keyCardX = -6 + Math.cos(orbitAngle) * orbitRadius;
@@ -834,13 +834,15 @@ export function VerificationProcess({
         keyCardRef.current.position.z = keyCardZ;
         symKeyRef.current.position.x = symKeyX;
         symKeyRef.current.position.z = symKeyZ;
-        keyCardRef.current.rotation.y = Math.PI/4 + t * Math.PI * 6;
-        symKeyRef.current.rotation.y = t * Math.PI * 6;
+        keyCardRef.current.rotation.y = Math.PI/4 + t * Math.PI * 1.1;
+        // (대칭키 자회전도 아주 약간만 더 동적이게)
+        symKeyRef.current.rotation.y = t * Math.PI * 1.1; // 1.1바퀴, 여전히 느리게
+        symKeyRef.current.rotation.x = Math.sin(t * Math.PI) * 0.1;
       }
       // 2. 파티클 낙하(더 빠르게, 더 아래까지)
       if (finalAnim.exploded && carParticlesRef.current) {
         const dt = 1/60;
-        const gravity = 9.8 * 0.38; // 기존보다 더 빠르게(0.2→0.38)
+        const gravity = 9.8 * 0.45; // 기존보다 더 빠르게(0.2→0.38)
         const newParticles = finalAnim.particles.map(p => {
           let vy = p.vy - gravity*dt;
           let y = p.y + vy*dt;
@@ -895,7 +897,7 @@ export function VerificationProcess({
                     whiteSpace: 'nowrap',
                     pointerEvents: 'none',
                     letterSpacing: '0.01em'
-                  }}>IPFS 파일 해시</div>
+                  }}>블록체인 해시</div>
                 </Html>
               )}
               <Box
@@ -924,7 +926,7 @@ export function VerificationProcess({
                     whiteSpace: 'nowrap',
                     pointerEvents: 'none',
                     letterSpacing: '0.01em'
-                  }}>블록체인 해시</div>
+                  }}>IPFS 파일 해시</div>
                 </Html>
               )}
             </>
@@ -1069,6 +1071,22 @@ export function VerificationProcess({
                       distance={4}
                       color={0xFCD34D}
                     />
+                    {/* 디바이스 속성키 라벨 - 더 위로 이동 */}
+                    <Html position={[0, 4.5, 0]} center style={{ pointerEvents: 'none' }}>
+                      <div style={{
+                        background: 'rgba(30,41,59,0.92)',
+                        color: '#fff',
+                        padding: '2px 10px',
+                        borderRadius: '6px',
+                        fontSize: '0.95em',
+                        fontWeight: 500,
+                        border: '1.5px solid #FCD34D',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                        whiteSpace: 'nowrap',
+                        pointerEvents: 'none',
+                        letterSpacing: '0.01em'
+                      }}>디바이스 속성키</div>
+                    </Html>
                   </group>
                 )}
                 {/* 암호문 구체 (커지다가 터짐) */}
@@ -1096,6 +1114,22 @@ export function VerificationProcess({
                         opacity: 0.5
                       })}
                     />
+                    {/* 속성 기반 암호문 라벨 - 더 위로 이동 */}
+                    <Html position={[0, 2.7, 0]} center style={{ pointerEvents: 'none' }}>
+                      <div style={{
+                        background: 'rgba(30,41,59,0.92)',
+                        color: '#fff',
+                        padding: '2px 10px',
+                        borderRadius: '6px',
+                        fontSize: '0.95em',
+                        fontWeight: 500,
+                        border: '1.5px solid #EC4899',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                        whiteSpace: 'nowrap',
+                        pointerEvents: 'none',
+                        letterSpacing: '0.01em'
+                      }}>속성 기반 암호문</div>
+                    </Html>
                   </group>
                 )}
                 {/* 암호문 터지는 효과 (간단한 파티클 등) */}
@@ -1111,6 +1145,22 @@ export function VerificationProcess({
                       <KeyCard />
                     </group>
                     <pointLight position={[0, 0, 0]} intensity={1.2} distance={6} color={0xFCD34D} />
+                    {/* 대칭키 라벨 - cp-abe 복호화에서만, 테두리 하늘색 */}
+                    <Html position={[0, 4.1, 0]} center style={{ pointerEvents: 'none' }}>
+                      <div style={{
+                        background: 'rgba(30,41,59,0.92)',
+                        color: '#fff',
+                        padding: '2px 10px',
+                        borderRadius: '6px',
+                        fontSize: '0.95em',
+                        fontWeight: 500,
+                        border: '1.5px solid #38BDF8', // sky blue
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                        whiteSpace: 'nowrap',
+                        pointerEvents: 'none',
+                        letterSpacing: '0.01em'
+                      }}>대칭키</div>
+                    </Html>
                   </group>
                 )}
               </>
@@ -1162,7 +1212,7 @@ export function VerificationProcess({
                   <KeyCard />
                   <pointLight position={[0, 0, 0]} intensity={1.2} distance={6} color={0xFCD34D} />
                 </group>
-                <Html position={[0, 2.2, 0]} center style={{ pointerEvents: 'none' }}>
+                {/* <Html position={[0, 2.2, 0]} center style={{ pointerEvents: 'none' }}>
                   <div className="key-label" style={{
                     background: 'rgba(30,41,59,0.92)',
                     color: '#fff',
@@ -1176,7 +1226,7 @@ export function VerificationProcess({
                     pointerEvents: 'none',
                     letterSpacing: '0.01em'
                   }}>대칭키</div>
-                </Html>
+                </Html> */}
               </group>
               <group ref={symKeyRef} position={[3, 1.5, 0]}>
                 <Sphere
@@ -1218,8 +1268,8 @@ export function VerificationProcess({
             </points>
           )}
           {/* 복호화중 라벨: 노란 구가 터지기 전까지만 표시 */}
-          {finalAnim.merged && !finalAnim.exploded && (
-            <Html position={[3, 4.5, 0]} center style={{ pointerEvents: 'none' }}>
+          {/* {finalAnim.merged && !finalAnim.exploded && (
+            <Html position={[3, 6.5, 0]} center style={{ pointerEvents: 'none' }}>
               <div className="decrypt-label" style={{
                 background: 'rgba(30,41,59,0.92)',
                 color: '#fff',
@@ -1227,14 +1277,14 @@ export function VerificationProcess({
                 borderRadius: '6px',
                 fontSize: '0.95em',
                 fontWeight: 500,
-                border: '1.5px solid #A855F7',
+                border: '1.5px solid #FCD34D',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
                 whiteSpace: 'nowrap',
                 pointerEvents: 'none',
                 letterSpacing: '0.01em'
-              }}>IPFS 파일 복호화 중</div>
+              }}>업데이트 파일 최종 복호화</div>
             </Html>
-          )}
+          )} */}
         </group>
       )}
     </group>

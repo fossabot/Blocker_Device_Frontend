@@ -58,7 +58,7 @@ export function UpdateAnimation() {
       setIsDownloading(true);
       setIpfsFileInfo({
         cid: "QmX8n7dK3oHNAqYxgkrBq21v7rbYthWQpvhA5KWbVHPEGK",
-        name: "fw_update_v2.5.0.bin",
+        name: "fw_update_v2.5.0",
         size: 10240306
       });
       setButtonLabel("다운로드 중...");
