@@ -114,6 +114,19 @@ const Vehicle3DView: React.FC<Vehicle3DViewProps> = ({ deviceInfo, onRefresh }) 
     }
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 'a' 키만 눌러도 알람 실행
+      if (e.key.toLowerCase() === 'a' && !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
+        console.log('Alarm clicked via keyboard');
+        e.preventDefault();
+        handleAlarmClick();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleAlarmClick]);
+
   return (
     <div className="main-content">
       <div className="status-bar">
