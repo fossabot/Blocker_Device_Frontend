@@ -1,0 +1,29 @@
+.navbar {
+  @apply fixed top-0 left-0 w-screen h-[90px] z-[100] bg-[#fafafa] border-b border-[#eff0ef] flex items-center justify-between px-0 box-border pt-6 pb-4;
+}
+
+.logo {
+  @apply text-[30px] font-bold text-black flex items-center -mt-2 ml-20;
+}
+
+.logoLink {
+  @apply no-underline text-black font-bold;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.navLinks {
+  @apply flex gap-8 mr-20 items-center;
+}
+
+.navLink {
+  @apply text-[18px] font-medium text-black flex items-center -mt-2 hover:border-b-2 hover:border-black transition-all no-underline;
+}
+
+.helpBtn {
+  @apply bg-black text-white rounded-[20px] px-[18px] py-[7px] text-[18px] font-bold flex items-center -mt-2 mr-4;
+}
+
+/* .settingsBtn {
+  @apply bg-[#ededed] rounded-[30px] w-[40px] h-[40px] flex items-center justify-center -mt-2 mr-10;
+} */

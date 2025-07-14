@@ -10,8 +10,6 @@ export const useWebSocket = () => {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
   const reconnectAttemptsRef = useRef(0);
   const MAX_RECONNECT_ATTEMPTS = 5;
-  // const lastNotificationId = useRef<number | null>(null);
-  // const prevIsConnected = useRef(false);
 
   useEffect(() => {
     let isCleanedUp = false;
@@ -118,30 +116,6 @@ export const useWebSocket = () => {
     shownNotificationKeys.current.add(key);
     return false;
   }, []);
-
-  // useEffect(() => {
-  //   if (lastNotification && (lastNotification as any).id) {
-  //     lastNotificationId.current = (lastNotification as any).id;
-  //   }
-  // }, [lastNotification]);
-
-  // useEffect(() => {
-  //   if (isConnected && !prevIsConnected.current) {
-  //     // 연결 복구 시 누락 알림 조회
-  //     if (onMissedNotifications) {
-  //       deviceApi.getNotifications(lastNotificationId.current ?? undefined)
-  //         .then((missed) => {
-  //           if (missed && missed.length > 0) {
-  //             onMissedNotifications(missed);
-  //           }
-  //         })
-  //         .catch((e) => {
-  //           console.warn('누락 알림 조회 실패:', e);
-  //         });
-  //     }
-  //   }
-  //   prevIsConnected.current = isConnected;
-  // }, [isConnected, onMissedNotifications]);
 
   return {
     isConnected,

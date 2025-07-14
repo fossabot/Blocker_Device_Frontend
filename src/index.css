@@ -15,10 +15,6 @@
     @apply min-h-screen bg-gray-50 text-gray-900;
   }
 
-  a {
-    @apply font-medium text-blue-600 no-underline hover:text-blue-700;
-  }
-
   h1 {
     @apply text-4xl leading-tight;
   }

@@ -47,13 +47,13 @@ body {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
-.nav-link {
+/* .nav-link {
   text-decoration: none;
 }
 
 .nav-link:hover {
   color: inherit !important;
-}
+} */
 
 @keyframes logo-spin {
   from {

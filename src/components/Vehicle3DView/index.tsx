@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useWebSocketContext } from '../../hooks/WebSocketContext';
 import { VehicleStatus } from '../../types/device';
-import { CubeIcon, BellIcon } from '@heroicons/react/24/outline';
+import { CubeIcon, BellIcon, MicrophoneIcon } from '@heroicons/react/24/outline';
 import VehicleLabels from './labels';
 import { DeviceInfo } from '../../types/device';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
 import { toastsState, installSuccessTriggerState } from '../../store/atoms';
 import { deviceApi } from '../../services/deviceApi';
+import MicModal from './MicModal';
 
 interface UpdateLabelInfo {
   uid?: string;
@@ -57,6 +58,7 @@ const Vehicle3DView: React.FC<Vehicle3DViewProps> = ({ deviceInfo, onRefresh }) 
   });
   // 설치 완료 시 D를 10초간 초록색으로 표시
   const [installedHighlight, setInstalledHighlight] = useState(false);
+  const [micOpen, setMicOpen] = useState(false);
 
   const { lastNotification, isConnected } = useWebSocketContext();
   const setToasts = useSetRecoilState(toastsState);
@@ -156,11 +158,13 @@ const Vehicle3DView: React.FC<Vehicle3DViewProps> = ({ deviceInfo, onRefresh }) 
               {isConnected ? 'Connected' : 'Disconnected'}
             </span>
           </div>
-          <div className="alarm pl-1">
+          <div className="alarm pl-1 flex gap-4">
             <BellIcon className="w-7 h-7 text-gray-400 cursor-pointer" onClick={handleAlarmClick} />
+            <MicrophoneIcon className="w-7 h-7 text-gray-400 cursor-pointer" onClick={() => setMicOpen(true)} />
           </div>
         </div>
       </div>
+      <MicModal open={micOpen} onClose={() => setMicOpen(false)} />
 
       <div className="car-area relative">
         <img
