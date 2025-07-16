@@ -110,4 +110,73 @@ export const deviceApi = {
     const { data } = await axios.get('/api/notifications', { params });
     return data.notifications || [];
   },
+
+  async registerUserVoice(audioBlob: Blob, userName: string): Promise<{ success: boolean; message: string; user_name?: string }> {
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'voice.webm');
+      formData.append('user_name', userName);
+
+      const response = await axios.post('/api/device/voice/register', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const { data } = response;
+
+      if (data.success) {
+        return {
+          success: true,
+          message: `환영합니다! ${data.speaker_name}님\n사용자 등록에 성공했습니다.`,
+          user_name: data.speaker_name
+        };
+      } else {
+        const errorInfo = data.error ? ` (${data.error})` : '';
+        return {
+          success: false,
+          message: `사용자 등록에 실패했습니다. 사유: ${errorInfo}`
+        };
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || '네트워크 오류가 발생했습니다.';
+      const speakerNameFromError = error.response?.data?.speaker_name || userName;
+      
+      return {
+        success: false,
+        message: `${speakerNameFromError}님 사용자 등록에 실패했습니다. (${errorMessage})`
+      };
+    }
+  },
+
+  async speechToText(audioBlob: Blob): Promise<{ success: boolean; transcribed_text?: string; detected_lang?: string; is_match?: boolean; predicted_speaker?: string; error?: string }> {
+    try {
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'voice.webm');
+
+      const response = await axios.post('/api/device/voice/stt', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const { data } = response;
+
+      return {
+        success: true,
+        transcribed_text: data.transcribed_text,
+        detected_lang: data.detected_lang,
+        is_match: data.is_match,
+        predicted_speaker: data.predicted_speaker
+      };
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || '네트워크 오류가 발생했습니다.';
+      
+      return {
+        success: false,
+        error: errorMessage
+      };
+    }
+  },
+
 };

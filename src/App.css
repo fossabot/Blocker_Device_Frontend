@@ -1,3 +1,14 @@
+/* CSS 커스텀 속성으로 navbar 높이 정의 - Tailwind 테마와 동기화 */
+:root {
+  --navbar-height: 68px; /* theme.spacing.navbar와 동일 */
+}
+
+@media (min-width: 1536px) { /* Tailwind 기본 2xl 브레이크포인트 */
+  :root {
+    --navbar-height: 90px; /* theme.spacing.navbar-lg와 동일 */
+  }
+}
+
 body, html {
   margin: 0;
   padding: 0;
@@ -364,7 +375,7 @@ body {
 /* Update animation styles */
 .update-animation {
   position: fixed;
-  top: 80px; /* navbar 높이만큼 아래로 */
+  top: var(--navbar-height); /* navbar 높이 변수 사용 */
   left: 0;
   right: 0;
   bottom: 0;
@@ -532,6 +543,13 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Shake animation for input validation feedback */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 
 /* UpdatesList(Available Updates) 카드만 넓이 늘리기 */

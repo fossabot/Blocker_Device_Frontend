@@ -1,27 +1,75 @@
 .navbar {
-  @apply fixed top-0 left-0 w-screen h-[90px] z-[100] bg-[#fafafa] border-b border-[#eff0ef] flex items-center justify-between px-0 box-border pt-6 pb-4;
+  @apply fixed top-0 left-0 w-screen z-[100] bg-[#fafafa] border-b border-[#eff0ef] flex items-center justify-between px-0 box-border pt-6 pb-4;
+  @apply h-navbar 2xl:h-navbar-lg;
 }
 
 .logo {
-  @apply text-[30px] font-bold text-black flex items-center -mt-2 ml-20;
+  @apply font-bold text-black flex items-center -mt-2;
+  /* 기본 여백 (900px 이상) */
+  margin-left: 5.5rem; /* ml-10 */
+  /* 기본 글자 크기 (900px 이상) */
+  font-size: 26px;
+}
+
+/* 1500px 이상일 때 */
+@media (min-width: 1500px) {
+  .logo {
+    margin-left: 5rem; /* ml-20 */
+    font-size: 30px;
+  }
 }
 
 .logoLink {
   @apply no-underline text-black font-bold;
-  font-size: 30px;
+  /* 기본 글자 크기 (900px 이상) */
+  font-size: 28px;
   font-weight: bold;
 }
 
+/* 1500px 이상일 때 */
+@media (min-width: 1500px) {
+  .logoLink {
+    font-size: 30px;
+  }
+}
+
 .navLinks {
-  @apply flex gap-8 mr-20 items-center;
+  @apply flex gap-8 items-center;
+  /* 기본 여백 (900px 이상) */
+  margin-right: 5.5rem; /* mr-14 */
+}
+
+/* 1500px 이상일 때 */
+@media (min-width: 1500px) {
+  .navLinks {
+    margin-right: 5rem; /* mr-20 */
+  }
 }
 
 .navLink {
-  @apply text-[18px] font-medium text-black flex items-center -mt-2 hover:border-b-2 hover:border-black transition-all no-underline;
+  @apply font-medium text-black flex items-center -mt-2 hover:border-b-2 hover:border-black transition-all no-underline;
+  /* 기본 글자 크기 (900px 이상) */
+  font-size: 16px;
+}
+
+/* 1500px 이상일 때 */
+@media (min-width: 1500px) {
+  .navLink {
+    font-size: 18px;
+  }
 }
 
 .helpBtn {
-  @apply bg-black text-white rounded-[20px] px-[18px] py-[7px] text-[18px] font-bold flex items-center -mt-2 mr-4;
+  @apply bg-black text-white rounded-[20px] px-[18px] py-[7px] font-bold flex items-center -mt-2 mr-4;
+  /* 기본 글자 크기 (900px 이상) */
+  font-size: 16px;
+}
+
+/* 1500px 이상일 때 */
+@media (min-width: 1500px) {
+  .helpBtn {
+    font-size: 18px;
+  }
 }
 
 /* .settingsBtn {
