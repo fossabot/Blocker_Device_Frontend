@@ -21,6 +21,7 @@ body, html {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* 전체 스크롤 방지 */
 }
 
 .app-container {
@@ -28,9 +29,10 @@ body, html {
   max-width: none;
   margin: 0;
   padding: 0;
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+  height: 100vh; /* 뷰포트 높이에 맞춤 */
+  overflow: hidden; /* 스크롤 방지 */
+  display: flex;
+  flex-direction: column;
 }
 
 body {
@@ -58,14 +60,6 @@ body {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
-/* .nav-link {
-  text-decoration: none;
-}
-
-.nav-link:hover {
-  color: inherit !important;
-} */
-
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
@@ -84,149 +78,17 @@ body {
 .main-frame {
   width: 100%;
   max-width: 1440px;
-  min-height: 100vh; /* 화면을 항상 꽉 채우도록 수정 */
+  height: 100vh;
   margin: 0 auto;
   background: transparent;
   box-sizing: border-box;
   position: relative;
   z-index: 1;
-}
-
-.main-content {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding-top: 70px;
+  overflow: hidden; /* 스크롤 방지 */
+  /* padding-top 제거 - Vehicle3DView에서 navbar 공간 처리 */
 }
-
-.status-bar {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin: 32px 0 24px 0;
-  padding: 0 40px 0 75px;
-  box-sizing: border-box;
-  position: sticky;
-  top: 70px;
-  z-index: 2;
-  align-items: flex-start;
-  font-size: 1.22em; /* 전체 묶음 크기 더 증가 */
-}
-
-.status-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 24px;
-}
-
-.status-row.alarm-column {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 16px;
-  margin-left: 0;
-}
-
-.gear {
-  font-size: 16px;
-  font-weight: 700;
-  color: #171717;
-  letter-spacing: -0.13px;
-}
-
-.battery {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.battery-bar {
-  width: 48px;
-  height: 18px;
-  background: #bfc0c0;
-  border: 1.5px solid #6a6a6a;
-  border-radius: 3px;
-  position: relative;
-  overflow: hidden;
-}
-
-.battery-level {
-  height: 22px;
-  background: #414141;
-  border-radius: 2px;
-  position: absolute;
-  left: 3px;
-  top: 0px;
-}
-
-.battery-percent {
-  font-size: 15px;
-  color: #414141;
-  font-weight: 600;
-}
-
-.blockchain-status {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.blockchain-dot {
-  width: 22px;
-  height: 22px;
-  background: #eff0ef;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.blockchain-text {
-  font-size: 16px;
-  font-weight: 700;
-  color: #424242;
-}
-
-.alarm {
-  width: auto;
-  height: auto;
-  background: none;
-  border-radius: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5em;
-}
-
-.car-area {
-  position: relative;
-  min-height: 360px;
-  width: 720px;
-  margin: 0 auto 32px;
-  z-index: 1;
-  margin-top: -70px;
-}
-
-.car-image {
-  width: 100%;
-  height: 360px;
-  border-radius: 24px;
-  object-fit: contain;
-  display: block;
-  margin: 0 auto;
-}
-
-.car-label {
-  position: absolute;
-  font-size: 12px;
-  font-weight: 700;
-  color: #171717;
-  background: rgba(255,255,255,0.8);
-  padding: 2px 8px;
-  border-radius: 6px;
-}
-
-.car-label.frunk { left: 80px; top: 80px; }
-.car-label.trunk { right: 80px; top: 80px; }
-.car-label.lock { left: 50%; top: 20px; transform: translateX(-50%); }
 
 .bottom-cards {
   display: flex;
@@ -235,11 +97,12 @@ body {
   justify-content: center;
   padding: 0 40px;
   box-sizing: border-box;
-  margin-top: -270px;
-  position: relative;
+  position: absolute; 
+  bottom: 5vh; 
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 2;
-  margin-left: auto;
-  margin-right: auto;
+  max-height: 40vh; 
 }
 
 .card {
@@ -247,45 +110,39 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   padding: 20px;
   width: 480px;
-  max-height: 240px;
-  min-height: 150px;
+  max-height: min(320px, 35vh); 
+  min-height: clamp(160px, 20vh, 240px); 
   display: flex;
   flex-direction: column;
   background: rgba(250, 250, 250, 0.85);
-  font-size: 1.09em; 
+  font-size: 1.09em;
 }
 
 .card-content {
   overflow-y: auto;
+  flex: 1; /* 남은 공간을 모두 차지 */
 }
 
 /* Available Updates 카드의 목록 스크롤 고정 */
 .card.updates-list-card .card-content {
-  max-height: 400px;
+  max-height: 100%; /* 카드 높이에 맞춰 조정 */
   overflow-y: auto;
 }
 
 /* 카드 전체 높이 제한 및 내부 스크롤 - 반응형 */
 .card.updates-list-card {
-  max-height: 400px;
-  height: 300px;
+  /* 기본 카드 스타일 사용 - 별도 높이 설정 제거 */
   display: flex;
   flex-direction: column;
 }
+
 @media (max-width: 1500px) {
-  .card.updates-list-card {
-    max-height: 220px;
-    height: 350px;
-  }
   .card.updates-list-card .card-content {
     max-height: 100%;
   }
 }
+
 @media (max-width: 900px) {
-  .card.updates-list-card {
-    max-height: 260px;
-    height: 160px;
-  }
   .card.updates-list-card .card-content {
     max-height: 100%;
   }
@@ -301,7 +158,7 @@ body {
 .device-info-list {
   display: flex;
   flex-direction: column;
-  gap: 13px; /* 행간 줄임 */
+  gap: 13px; 
   margin-top: 15px;
 }
 
@@ -314,13 +171,13 @@ body {
 .device-info-label {
   color: #2e2e2e;
   font-weight: 500;
-  font-size: 0.6em; /* 정보 라벨/값도 아주 조금 키움 */
+  font-size: 0.6em;
 }
 
 .device-info-value {
   color: #2e2e2e;
   text-align: right;
-  font-size: 0.6em; /* 정보 라벨/값도 아주 조금 키움 */
+  font-size: 0.6em; 
 }
 
 .status-normal {
@@ -375,7 +232,7 @@ body {
 /* Update animation styles */
 .update-animation {
   position: fixed;
-  top: var(--navbar-height); /* navbar 높이 변수 사용 */
+  top: var(--navbar-height); 
   left: 0;
   right: 0;
   bottom: 0;
@@ -570,51 +427,42 @@ body {
 /* UpdatesList & DeviceInfo 반응형 카드 크기 */
 .card.updates-list-card,
 .card.device-info-card {
-  width: 1700px;
+  width: 600px;
   max-width: 98vw;
   min-width: 320px;
 }
 
-@media (max-width: 1800px) {
-  .card.updates-list-card,
-  .card.device-info_card {
-    width: 1000px;
-  }
-}
-
-@media (max-width: 1500px) {
+@media (max-width: 1023px) {
   .card.updates-list-card,
   .card.device-info-card {
     width: 600px;
-    max-width: 900px;
+    max-width: 90vw;
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
   .card.updates-list-card,
   .card.device-info-card {
     width: 98vw;
-    min-width: 220px;
+    min-width: 280px;
     padding: 12px;
   }
 }
 
 /* DeviceInfo 라벨/값 반응형 폰트 크기 */
-.device-info-label {
-  font-size: 0.6em;
-}
+.device-info-label,
 .device-info-value {
   font-size: 0.6em;
 }
 
-@media (max-width: 1500px) {
+@media (max-width: 1023px) {
   .device-info-label,
   .device-info-value {
     font-size: 0.8em;
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 767px) {
   .device-info-label,
   .device-info-value {
     font-size: 0.46em;
@@ -622,80 +470,62 @@ body {
 }
 
 /* Responsive styles */
-@media (max-width: 1440px) {
+@media (max-width: 1023px) {
   .bottom-cards {
     flex-direction: column;
     align-items: center;
     width: 90%;
+    max-height: 45vh;
+    gap: 16px;
   }
 
   .card {
     width: 100%;
     max-width: 640px;
-    min-height: 320px;
+    max-height: min(280px, 28vh);
+    min-height: clamp(140px, 18vh, 220px);
   }
 }
 
-@media (max-width: 840px) {
-  .status-bar {
-    margin: 32px 0 24px 0;
-    padding: 0 20px 0 80px;
-  }
-
-  .car-area {
-    width: 90%;
-    padding: 0 20px;
-  }
-
+@media (max-width: 767px) {
   .bottom-cards {
     padding: 0 20px;
-    margin-top: -200px;
-  }
-
-  .navbar {
-    height: 56px;
-    padding: 0 0;
+    bottom: 0.2vh;
+    max-height: 50vh;
   }
 
   .card {
     width: 100%;
     max-width: 100vw;
-    min-height: 260px;
+    max-height: min(240px, 25vh);
+    min-height: clamp(120px, 15vh, 180px);
   }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1024px) {
   .navbar {
     height: 80px;
     padding: 0 0;
   }
 }
 
-@media (min-width: 1600px) {
-  .main-content {
-    padding-top: 100px;
-  }
-  .car-area {
-    min-height: 300px;
-    width: 780px;
-    margin-top: -20px;
-  }
-  .car-image {
-    height: 720px;
-    border-radius: 36px;
-  }
+@media (min-width: 1536px) {
   .bottom-cards {
     gap: 48px;
     width: 100%;
-    margin-top: -260px;
+    bottom: 5vh;
     padding: 0 80px;
+    max-height: 45vh;
   }
+  
   .card {
-    width: 1200px;
+    width: 600px;
     font-size: 1.5em;
     padding: 36px;
-    min-height: 350px;
+    max-height: min(450px, 40vh);
+    min-height: clamp(280px, 25vh, 380px);
   }
+  
   .card-title {
     font-size: 1.7em;
   }
@@ -706,36 +536,25 @@ body {
   }
 }
 
-.navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 100;
-  height: 68px;
-  padding: 0 0;
-  transition: height 0.3s, padding 0.3s;
-  display: flex;
-  align-items: center;
-}
-
 /* Toast(알림) 박스 반응형 크기 및 폰트 */
 .toast-box {
-  width: 320px;
-  font-size: 1rem;
-  padding-top: 1.2rem;
-  padding-bottom: 1.4rem;
+  width: 300px;
+  font-size: 0.8rem;
+  padding-top: 1.1rem;
+  padding-bottom: 1.1rem;
   border-radius: 0.5rem;
 }
-@media (min-width: 900px) {
+
+@media (max-width: 767px) {
   .toast-box {
-    width: 300px;
-    font-size: 0.8rem;
-    padding-top: 1.1rem;
-    padding-bottom: 1.1rem;
+    width: 280px;
+    font-size: 0.7rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
   }
 }
-@media (min-width: 1500px) {
+
+@media (min-width: 1536px) {
   .toast-box {
     width: 390px;
     font-size: 0.8rem;
@@ -748,13 +567,16 @@ body {
   font-size: 1.15em;
   font-weight: 600;
 }
+
 .toast-box .toast-message {
   font-size: 0.98em;
 }
-@media (min-width: 1500px) {
+
+@media (min-width: 1536px) {
   .toast-box .toast-title {
     font-size: 1.35em;
   }
+  
   .toast-box .toast-message {
     font-size: 1.13em;
   }

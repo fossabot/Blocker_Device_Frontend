@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BounceLoader } from 'react-spinners';
+import styles from './Vehicle3DView.module.css';
 
 interface UpdateLabelInfo {
   uid?: string;
@@ -34,10 +35,10 @@ const VehicleLabels: React.FC<VehicleLabelsProps> = ({ updateLabelInfo }) => {
   const [hovered, setHovered] = useState<'door' | 'engine' | null>(null);
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
+    <div className={styles.labelContainer}>
       {/* Door position */}
       <div
-        className="absolute left-[12%] top-[16%] pointer-events-auto flex flex-col items-center"
+        className={styles.doorLabel}
         onMouseEnter={() => setHovered('door')}
         onMouseLeave={() => setHovered(null)}
       >
@@ -56,7 +57,7 @@ const VehicleLabels: React.FC<VehicleLabelsProps> = ({ updateLabelInfo }) => {
 
       {/* Engine position */}
       <div
-        className="absolute left-[55%] bottom-[96%] pointer-events-auto flex flex-col items-center"
+        className={styles.engineLabel}
         onMouseEnter={() => setHovered('engine')}
         onMouseLeave={() => setHovered(null)}
       >

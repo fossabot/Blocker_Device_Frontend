@@ -460,7 +460,7 @@ const MicModal: React.FC<MicModalProps> = ({ open, onClose }) => {
             
             <div className="text-lg font-semibold text-gray-700 text-center">
               {isProcessing ? '음성 처리 중...' : 
-               isRecording ? (isSilent ? '무음 감지, 녹음 종료' : '녹음 중...') : 
+               isRecording ? (isSilent ? '녹음 종료' : '녹음 중...') : 
                '음성 비서'}
             </div>
           </div>
