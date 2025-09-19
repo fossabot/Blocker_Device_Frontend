@@ -1,43 +1,63 @@
-# IoT Device Frontend
+# Blocker Device Frontend
 
-## 소개
-이 프로젝트는 블록체인 기반 IoT 디바이스 소프트웨어 업데이트 시스템의 프론트엔드입니다. React와 TypeScript를 사용하여 개발되었으며, Vite를 빌드 도구로 사용합니다.
+Blocker Device Frontend is an open-source web application for managing and monitoring software updates on IoT devices using blockchain technology. It provides a modern interface for real-time device status, secure update distribution, blockchain integration, and interactive 3D visualization. The project is designed for extensibility, reliability, and ease of use in both research and production environments.
 
-## 주요 기능
-- 실시간 디바이스 상태 모니터링
-- 블록체인 연결 상태 확인
-- 소프트웨어 업데이트 목록 조회
-- 업데이트 구매 및 설치 관리
-- 업데이트 이력 조회
 
-## 시작하기
+## Features
 
-### 개발 환경 설정
-```bash
-# 의존성 설치
-npm install
+- Real-time monitoring of connected IoT devices
+- Secure software update management and history tracking
+- Blockchain-based verification and status display
+- Interactive 3D visualization of devices and update processes
 
-# 개발 서버 실행
-npm run dev
 
-# 프로덕션 빌드
-npm run build
-```
+## Requirements
 
-## 프로젝트 구조
+- Node.js (version 18 or higher)
+- npm
+- Windows, macOS, or Linux
+
+## Technology Stack
+
+<p align="left">
+	<img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+	<img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+	<img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=FFD62E" alt="Vite" />
+	<img src="https://img.shields.io/badge/Recoil-3578E5?style=for-the-badge&logo=recoil&logoColor=white" alt="Recoil" />
+	<img src="https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white" alt="Three.js" />
+	<img src="https://img.shields.io/badge/Tailwind%20CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+	<img src="https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socket.io&logoColor=white" alt="Socket.io" />
+	<img src="https://img.shields.io/badge/GSAP-88CE02?style=for-the-badge&logo=greensock&logoColor=white" alt="GSAP" />
+	<img src="https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge" alt="Axios" />
+</p>
+
+## Installation
+
+See [INSTALL.md](./INSTALL.md) for installation and usage instructions.
+
+## Directory Structure
+
 ```
 src/
-├── components/     # UI 컴포넌트
-├── pages/         # 페이지 컴포넌트
-├── services/      # API 통신 로직
-├── hooks/         # 커스텀 훅
-├── types/         # TypeScript 타입 정의
-├── utils/         # 유틸리티 함수
-└── assets/        # 정적 리소스
+├── components/     # UI and 3D components
+├── pages/          # Main application pages
+├── services/       # API and backend communication
+├── hooks/          # Custom React hooks
+├── types/          # TypeScript type definitions
+├── utils/          # Utility functions
+├── assets/         # Static resources
+public/
+├── 3D models and license files
 ```
 
-## API 연동
-- 디바이스 정보 조회
-- 업데이트 목록 조회
-- 업데이트 설치
-- 업데이트 이력 조회
+## Third-Party Licenses
+
+Licenses for third-party resources and 3D models are listed in [THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES.md).
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
+
+---
+
+Contributions and questions are welcome via Issues and Pull Requests.
