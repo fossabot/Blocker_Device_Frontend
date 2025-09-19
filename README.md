@@ -1,6 +1,6 @@
 # Blocker Device Frontend
 
-Blocker Device Frontend is an open-source web application for managing and monitoring software updates on IoT devices using blockchain technology. It provides a modern interface for real-time device status, secure update distribution, blockchain integration, and interactive 3D visualization. The project is designed for extensibility, reliability, and ease of use in both research and production environments.
+Blocker Device Frontend is an open-source web app for managing and monitoring IoT device software updates with blockchain integration and update process visualization.
 
 ![Image](https://github.com/user-attachments/assets/4a1147c2-7f3e-4f20-ac97-b612e6eec8b7)
 
