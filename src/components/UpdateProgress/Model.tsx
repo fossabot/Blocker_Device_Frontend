@@ -1,6 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useGLTF } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Group } from 'three';
 
@@ -16,7 +15,6 @@ export default function Model({
   rotation = [0, Math.PI / 2, 0]
 }: ModelProps) {
   const { scene } = useGLTF('/tesla_2018_model_3/scene.gltf');
-  const { scene: threeScene } = useThree();
   const groupRef = useRef<Group>(null);
   
   // Preload the model

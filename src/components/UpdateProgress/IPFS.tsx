@@ -4,24 +4,16 @@ import * as THREE from 'three';
 
 interface IPFSProps {
   position?: [number, number, number];
-  isAnimating?: boolean;
   scale?: number;
   onDownload?: () => void;
   isDownloading?: boolean;
-  ipfsFileInfo?: {
-    cid: string;
-    name: string;
-    size: number;
-  };
 }
 
 export function IPFS({
   position = [15, 0, 0],
-  isAnimating = false,
   scale = 1,
   onDownload,
   isDownloading = false,
-  ipfsFileInfo
 }: IPFSProps) {
   const groupRef = useRef<THREE.Group>(null);
   const nodesRef = useRef<THREE.Mesh[]>([]);
@@ -111,7 +103,7 @@ export function IPFS({
       
       if (!transferNodeRef.current) return;
 
-      const transferDuration = 1.5; // 기존 2.0 → 1.5초로 더 빠르게
+      const transferDuration = 1.5; // 1.5초
       const transferProgress = Math.min(elapsedTime / transferDuration, 1);
       
       const easedProgress = 1 - Math.cos(transferProgress * Math.PI / 2);

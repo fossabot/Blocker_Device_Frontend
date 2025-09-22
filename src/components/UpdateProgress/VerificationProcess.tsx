@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useMemo } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Box, Sphere, Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -32,40 +32,14 @@ export function VerificationProcess({
   const [cubeColor, setCubeColor] = useState('#60A5FA');
   const [showLabels, setShowLabels] = useState(true);
 
-  // 파티클 시스템 설정
-  const particlesGeometry = useMemo(() => {
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(500 * 3); // 500개의 파티클로 증가
-    const colors = new Float32Array(500 * 3); // 각 파티클의 색상
-    
-    for(let i = 0; i < positions.length; i += 3) {
-      // 위치: 더 넓은 범위에 분포
-      positions[i] = (Math.random() - 0.5) * 12;
-      positions[i + 1] = (Math.random() - 0.5) * 12;
-      positions[i + 2] = (Math.random() - 0.5) * 12;
-      
-      // 색상: 보라색 계열의 그라데이션
-      const mixFactor = Math.random();
-      colors[i] = 0.7 + mixFactor * 0.3; // R: 파티클마다 다른 빨강 값
-      colors[i + 1] = 0.3 + mixFactor * 0.4; // G: 파티클마다 다른 초록 값
-      colors[i + 2] = 0.9 + mixFactor * 0.1; // B: 파티클마다 다른 파랑 값
-    }
-    
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    
-    return geometry;
-  }, []);
-
   // --- Device Private Key Animation State (for cpabe-decryption) ---
   const [keyPhase, setKeyPhase] = useState<'wait' | 'jump1' | 'jump2' | 'appear' | 'wait2' | 'move' | 'enter' | 'light' | 'symmetric'>('wait');
   const [keyAnimTime, setKeyAnimTime] = useState(0); // seconds since phase start
-  const keyAnimRef = useRef<number>(0);
   const keyPhaseStart = useRef<number>(0);
 
   // Phase durations (seconds)
   const keyPhaseDurations = {
-    wait: 1.0,      // 첫 대기 1초 (2초→1초로 변경)
+    wait: 1.0,      // 첫 대기 1초
     jump1: 0.5,     // 점프1
     jump2: 0.5,     // 점프2
     appear: 0.7,    // 포물선 이동(차량→암호문 앞)
@@ -100,7 +74,7 @@ export function VerificationProcess({
       if (keyPhase === 'wait' && elapsed > keyPhaseDurations.wait) nextPhase = 'jump1';
       if (keyPhase === 'jump1' && elapsed > keyPhaseDurations.jump1) nextPhase = 'jump2';
       if (keyPhase === 'jump2' && elapsed > keyPhaseDurations.jump2) nextPhase = 'appear';
-      if (keyPhase === 'appear' && elapsed > keyPhaseDurations.appear) nextPhase = 'move'; // wait2 삭제, 바로 move로
+      if (keyPhase === 'appear' && elapsed > keyPhaseDurations.appear) nextPhase = 'move'; 
       if (keyPhase === 'move' && elapsed > keyPhaseDurations.move) nextPhase = 'enter';
       if (keyPhase === 'enter' && elapsed > keyPhaseDurations.enter) nextPhase = 'light';
       if (keyPhase === 'light' && elapsed > keyPhaseDurations.light) nextPhase = 'symmetric';
@@ -133,7 +107,7 @@ export function VerificationProcess({
         hashCube2Ref.current.position.x = newX2;
         setCube1Pos([newX1, 1.5, 0]);
         setCube2Pos([newX2, 1.5, 0]);
-        // 큐브 회전 (더 복잡한 패턴)
+        // 큐브 회전 
         hashCube1Ref.current.rotation.y += 0.02;
         hashCube1Ref.current.rotation.x = Math.sin(time) * 0.2;
         hashCube2Ref.current.rotation.y -= 0.02;
@@ -159,16 +133,16 @@ export function VerificationProcess({
     }      // CP-ABE 복호화 애니메이션
     if (stage === 'cpabe-decryption' && lockRef.current && fileModelRef.current) {
       // 차량 키와 CP-ABE 구체의 복호화 진행 상태 시각화
-      const decryptProgress = Math.min(1, time / 12); // 12초에 걸쳐 완료되는 효과 (기존 10초에서 늘림)
+      const decryptProgress = Math.min(1, time / 12); // 12초에 걸쳐 완료
       const finalPhase = decryptProgress > 0.8; // 최종 단계 여부 - 새로운 대칭키 생성
 
-      // CP-ABE 구체 회전 효과 - 좀 더 부드럽고 세련된 움직임
+      // CP-ABE 구체 회전 효과
       lockRef.current.rotation.y = finalPhase ? 
-        THREE.MathUtils.lerp(lockRef.current.rotation.y, 0, 0.05) : // 최종 단계에서는 안정화
+        THREE.MathUtils.lerp(lockRef.current.rotation.y, 0, 0.05) : 
         time * 0.15;
       
       lockRef.current.rotation.x = finalPhase ?
-        THREE.MathUtils.lerp(lockRef.current.rotation.x, 0, 0.05) : // 최종 단계에서는 안정화
+        THREE.MathUtils.lerp(lockRef.current.rotation.x, 0, 0.05) : 
         Math.sin(time * 0.1) * 0.05;
       
       // 중심 구체들에 대한 애니메이션 (CP-ABE 암호화 구체)
@@ -197,7 +171,7 @@ export function VerificationProcess({
             outerSphere.material.color.copy(startColor).lerp(endColor, colorProgress);
             outerSphere.material.emissive.copy(startColor).lerp(endColor, colorProgress);
             outerSphere.material.emissiveIntensity = finalPhase ? 
-              0.8 + Math.sin(time * 3) * 0.2 : // 최종 단계에서 강한 발광 맥동
+              0.8 + Math.sin(time * 3) * 0.2 : 
               0.4 + decryptProgress * 0.5;
           }
           
@@ -205,7 +179,6 @@ export function VerificationProcess({
           const innerSphere = sphereGroup.children[1] as THREE.Mesh;
           if(innerSphere.material instanceof THREE.MeshStandardMaterial) {
             if (finalPhase) {
-              // 최종 단계에서 내부 구체(대칭키)는 더 뚜렷하게 표현
               innerSphere.material.opacity = THREE.MathUtils.lerp(
                 innerSphere.material.opacity, 
                 1.0, 
@@ -225,8 +198,7 @@ export function VerificationProcess({
               innerSphere.scale.set(finalKeySize, finalKeySize, finalKeySize);
             } else {
               // 점진적 변화 단계
-              // 더 세련된 맥동 효과
-              const pulseFrequency = 1.5 + decryptProgress * 2; // 진행에 따라 맥동 빈도 증가
+              const pulseFrequency = 1.5 + decryptProgress * 2;
               const baseEmissive = 0.7 + Math.sin(time * pulseFrequency) * 0.3;
               innerSphere.material.emissiveIntensity = baseEmissive + decryptProgress * 0.6;
               
@@ -238,7 +210,6 @@ export function VerificationProcess({
               innerSphere.material.emissive.copy(startColor).lerp(endColor, colorProgress);
               
               // 키 대입 진행에 따른 내부 구체 맥동
-              // 더 세련된 맥동 패턴 - 진행에 따라 안정적인 맥동으로 변화
               const pulseFrequency2 = 3 + decryptProgress * 2;
               const pulseAmplitude = 0.1 + decryptProgress * 0.15;
               const pulseIntensity = 1 + Math.sin(time * pulseFrequency2) * pulseAmplitude;
@@ -255,12 +226,10 @@ export function VerificationProcess({
           
           if (finalPhase) {
             // 최종 단계에서 와이어프레임은 안정화되며 대칭키를 보호하는 구조로 표현
-            // 더 부드러운 회전
             outerWireSphere.rotation.x = outerWireSphere.rotation.x + 0.002;
             outerWireSphere.rotation.z = outerWireSphere.rotation.z - 0.001;
             outerWireSphere.rotation.y = outerWireSphere.rotation.y + 0.003;
           } else {
-            // 초기 단계의 더 역동적인 회전 패턴
             outerWireSphere.rotation.x = time * 0.15;
             outerWireSphere.rotation.z = time * -0.1;
             outerWireSphere.rotation.y = time * 0.2;
@@ -268,7 +237,6 @@ export function VerificationProcess({
           
           if(outerWireSphere.material instanceof THREE.MeshStandardMaterial) {
             if (finalPhase) {
-              // 최종 단계에서 완전한 금색 와이어프레임
               outerWireSphere.material.color.set(0xFEF3C7);
               outerWireSphere.material.emissive.set(0xFEF3C7);
               outerWireSphere.material.emissiveIntensity = 0.7 + Math.sin(time * 3) * 0.2;
@@ -292,7 +260,7 @@ export function VerificationProcess({
       // 차량에서 생성된 키 애니메이션 (CP-ABE 구체로 이동)
       if (fileModelRef.current) {
         // 복호화 단계에 따라 다른 애니메이션 적용
-        const decryptProgress = Math.min(1, time / 12); // 12초에 걸쳐 완료되는 효과 (기존 10초에서 늘림)
+        const decryptProgress = Math.min(1, time / 12); // 12초에 걸쳐 완료
         
         if (decryptProgress < 0.5) {
           // 1단계: 차량에서 키가 생성되고 CP-ABE 구체로 이동
@@ -303,7 +271,7 @@ export function VerificationProcess({
           const endX = 3;
           const pathX = startX + (endX - startX) * moveProgress;
           
-          // 호 형태의 경로로 이동 (위로 올라갔다가 내려옴)
+          // 호 형태의 경로로 이동
           const pathY = 1.5 + Math.sin(moveProgress * Math.PI) * 2;
           
           // 키 위치 업데이트
@@ -477,11 +445,9 @@ export function VerificationProcess({
                 dataLine.material.emissive.copy(lineStartColor).lerp(lineEndColor, lineProgress);
                 
                 // 복호화 중인 데이터 라인에 물결 효과 - 데이터 처리 시각화
-                // 더 역동적인 데이터 흐름 효과
                 const waveSpeed = 3 + i * 0.2; // 각 라인마다 다른 속도
-                const waveAmplitude = 0.15 + (lineProgress * 0.1); // 진행에 따라 진폭 증가
+                const waveAmplitude = 0.15 + (lineProgress * 0.1);
                 dataLine.position.x = 3 + Math.sin(time * waveSpeed + i * 0.5) * waveAmplitude;
-                // 데이터 라인 길이 변화 - 복호화 진행에 따라 길이 변화
                 dataLine.scale.x = 3 + Math.sin(time * (2 + i * 0.15) + i) * 0.3 + lineProgress * 0.2;
               }
             }
@@ -493,7 +459,6 @@ export function VerificationProcess({
           const fileIcon = fileModelRef.current.children[9] as THREE.Mesh;
           
           if(fileIcon.material instanceof THREE.MeshStandardMaterial) {
-            // 아이콘은 85% 복호화 진행 후 나타남 - 파일이 사용 가능함을 의미
             const iconRevealProgress = decryptProgress > 0.85 ? 
               Math.min(1, (decryptProgress - 0.85) * 10) : 0;
             
@@ -505,8 +470,7 @@ export function VerificationProcess({
               fileIcon.material.color.set(0x0EA5E9);
               fileIcon.material.emissive.set(0x0EA5E9);
             }
-            
-            // 더 세련된 스케일 효과 (약간의 오버슈트로 튀어오르는 효과)
+
             const bounceEffect = iconRevealProgress < 0.5 ? 
               iconRevealProgress * 2 : 
               1 + Math.sin((iconRevealProgress - 0.5) * Math.PI) * 0.2;
@@ -517,7 +481,7 @@ export function VerificationProcess({
               bounceEffect * 1.2
             );
             
-            // 복호화 완료 아이콘 맥동 효과
+            // 복호화 완료
             if(iconRevealProgress > 0.5) {
               const pulse = 1 + Math.sin(time * 4) * 0.12;
               fileIcon.material.emissiveIntensity = 0.9 + Math.sin(time * 5) * 0.2;
@@ -529,7 +493,6 @@ export function VerificationProcess({
         // 내부 발광 효과 - 복호화 에너지
         if(fileModelRef.current.children[10]) {
           const innerLight = fileModelRef.current.children[10] as THREE.PointLight;
-          // 복호화 진행에 따라 파일 내부에서 빛이 점점 강해짐
           innerLight.intensity = 0.2 + decryptProgress * 1.8;
           innerLight.distance = 2 + decryptProgress * 5;
           
@@ -548,7 +511,6 @@ export function VerificationProcess({
         
         if(particlesRef.current.visible) {
           // 데이터 복호화 과정을 표현하는 파티클 움직임
-          // 더 정교한 회전 패턴
           particlesRef.current.rotation.y = time * 0.25;
           particlesRef.current.rotation.z = time * 0.12;
           
@@ -666,7 +628,6 @@ export function VerificationProcess({
         }
       }
       
-      // 주변 발광 링들 애니메이션 - 복호화 과정의 진행 상태를 시각화
       // 파일 주변의 발광 링들이 CP-ABE 키 색상(금색)에서 복호화된 파일 색상(청록색)으로 변화
       const sphereRings = document.querySelectorAll('sphere');
       sphereRings.forEach((sphereRing, index) => {
@@ -758,7 +719,7 @@ export function VerificationProcess({
       const start = performance.now();
       function animate() {
         const now = performance.now();
-        // 지속시간을 2.8초 → 3.3초로 증가
+        // 지속시간
         let t = Math.min(1, (now - start) / 3000);
         setFinalAnim(fa => ({ ...fa, progress: t }));
         if (t < 1) raf = requestAnimationFrame(animate);
@@ -812,11 +773,11 @@ export function VerificationProcess({
       // 1. 키카드/대칭키 이동 및 회전
       if (!finalAnim.merged && keyCardRef.current && symKeyRef.current) {
         const t = finalAnim.progress;
-        // 더 오래 돌다가 들어가도록: t가 0~0.7까지는 궤도, 0.7~1에서만 직선 접근
+        // t가 0~0.7까지는 궤도, 0.7~1에서만 직선 접근
         let orbitT = Math.min(1, t / 0.7);
         let approachT = t > 0.7 ? (t - 0.7) / 0.3 : 0;
         // 궤도 반경
-        const orbitRadius = 1.35 - 0.95 * orbitT; // 기존보다 0.15씩만 증가
+        const orbitRadius = 1.35 - 0.95 * orbitT; 
         const orbitAngle = Math.PI/2 + Math.PI * 3 * orbitT; // 1.5바퀴 이상
         // 궤도 위치
         let keyCardX = -6 + Math.cos(orbitAngle) * orbitRadius;
@@ -835,18 +796,16 @@ export function VerificationProcess({
         symKeyRef.current.position.x = symKeyX;
         symKeyRef.current.position.z = symKeyZ;
         keyCardRef.current.rotation.y = Math.PI/4 + t * Math.PI * 1.1;
-        // (대칭키 자회전도 아주 약간만 더 동적이게)
-        symKeyRef.current.rotation.y = t * Math.PI * 1.1; // 1.1바퀴, 여전히 느리게
+        symKeyRef.current.rotation.y = t * Math.PI * 1.1; 
         symKeyRef.current.rotation.x = Math.sin(t * Math.PI) * 0.1;
       }
-      // 2. 파티클 낙하(더 빠르게, 더 아래까지)
+      // 2. 파티클 낙하
       if (finalAnim.exploded && carParticlesRef.current) {
         const dt = 1/60;
-        const gravity = 9.8 * 0.45; // 기존보다 더 빠르게(0.2→0.38)
+        const gravity = 9.8 * 0.45; 
         const newParticles = finalAnim.particles.map(p => {
           let vy = p.vy - gravity*dt;
           let y = p.y + vy*dt;
-          // 더 아래(-2.5→-6.5)까지 떨어지도록
           if (y < -6.5) {
             y = -6.5;
             vy = 0;
@@ -868,7 +827,6 @@ export function VerificationProcess({
       {/* 해시 검증 단계 */}
       {stage === 'hash-verification' && (
         <>
-          {/* Show two cubes until merged, then show one merged cube */}
           {!merged && (
             <>
               <Box
@@ -971,7 +929,6 @@ export function VerificationProcess({
           {/* --- Device Private Key Animation --- */}
           {/* 개인키(골드키) 애니메이션: 1초 대기 → 제자리 점프 2회 → 포물선 이동 → 암호문 안으로 포물선 이동 → 진입 */}
           {(() => {
-            // 위치 계산
             const start: [number, number, number] = [-6, 0.2, 0];
             const mid: [number, number, number] = [2.2, 1.5, 0]; // 차량 위
             const inside: [number, number, number] = [3, 1.5, 0]; // 암호문 내부(진입)
@@ -984,7 +941,6 @@ export function VerificationProcess({
             let showExploding = false;
             let keyCardSpin = 0;
 
-            // 암호문 커짐/터짐/키카드 생성 타이밍 계산
             if (keyPhase === 'wait') {
               // 1초 대기: 차량 옆에 정지
               keyPos = start;
@@ -1166,7 +1122,6 @@ export function VerificationProcess({
               </>
             );
           })()}
-          {/* --- 기존 CP-ABE 구체 및 라벨 --- */}
           {/* 암호화된 데이터 구체 (CP-ABE 구체) */}
           {(stage === 'cpabe-decryption' && keyPhase !== 'light' && keyPhase !== 'symmetric') && (
             <group>
@@ -1212,21 +1167,6 @@ export function VerificationProcess({
                   <KeyCard />
                   <pointLight position={[0, 0, 0]} intensity={1.2} distance={6} color={0xFCD34D} />
                 </group>
-                {/* <Html position={[0, 2.2, 0]} center style={{ pointerEvents: 'none' }}>
-                  <div className="key-label" style={{
-                    background: 'rgba(30,41,59,0.92)',
-                    color: '#fff',
-                    padding: '2px 10px',
-                    borderRadius: '6px',
-                    fontSize: '0.95em',
-                    fontWeight: 500,
-                    border: '1.5px solid #FCD34D',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-                    whiteSpace: 'nowrap',
-                    pointerEvents: 'none',
-                    letterSpacing: '0.01em'
-                  }}>대칭키</div>
-                </Html> */}
               </group>
               <group ref={symKeyRef} position={[3, 1.5, 0]}>
                 <Sphere
@@ -1267,24 +1207,6 @@ export function VerificationProcess({
               <pointsMaterial vertexColors={false} color={0xFCD34D} size={0.28} transparent opacity={0.88} blending={THREE.AdditiveBlending} sizeAttenuation depthWrite={false} />
             </points>
           )}
-          {/* 복호화중 라벨: 노란 구가 터지기 전까지만 표시 */}
-          {/* {finalAnim.merged && !finalAnim.exploded && (
-            <Html position={[3, 6.5, 0]} center style={{ pointerEvents: 'none' }}>
-              <div className="decrypt-label" style={{
-                background: 'rgba(30,41,59,0.92)',
-                color: '#fff',
-                padding: '2px 10px',
-                borderRadius: '6px',
-                fontSize: '0.95em',
-                fontWeight: 500,
-                border: '1.5px solid #FCD34D',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-                whiteSpace: 'nowrap',
-                pointerEvents: 'none',
-                letterSpacing: '0.01em'
-              }}>업데이트 파일 최종 복호화</div>
-            </Html>
-          )} */}
         </group>
       )}
     </group>

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useSetRecoilState } from 'recoil';
 import { showAnimationState } from '../../store/atoms';
 import { Scene } from './Scene';
@@ -11,11 +11,7 @@ export function UpdateAnimation() {
   const [showBlockchainInfo, setShowBlockchainInfo] = useState(false);
   const [returnedToInitial, setReturnedToInitial] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [ipfsFileInfo, setIpfsFileInfo] = useState<{
-    cid: string;
-    name: string;
-    size: number;
-  } | undefined>(undefined);
+  const [showIpfsInfo, setShowIpfsInfo] = useState(false);
   const [hidePanels, setHidePanels] = useState(false);
   const [carDriveStage, setCarDriveStage] = useState<'idle' | 'back' | 'forward'>('idle');
 
@@ -56,11 +52,7 @@ export function UpdateAnimation() {
       // 4단계: IPFS 다운로드 시작
       console.log('Starting IPFS download');
       setIsDownloading(true);
-      setIpfsFileInfo({
-        cid: "QmX8n7dK3oHNAqYxgkrBq21v7rbYthWQpvhA5KWbVHPEGK",
-        name: "fw_update_v2.5.0",
-        size: 10240306
-      });
+      setShowIpfsInfo(true);
       setButtonLabel("다운로드 중...");
     } else if (currentStep === 4) {
       // 5단계: 해시 검증 시작
@@ -106,7 +98,7 @@ export function UpdateAnimation() {
     setShowBlockchainInfo(false);
     setReturnedToInitial(false);
     setIsDownloading(false);
-    setIpfsFileInfo(undefined);
+    setShowIpfsInfo(false);
     setCurrentStep(0);
     setButtonLabel("블록체인으로 이동");
     setVerificationStage('idle');
@@ -121,6 +113,7 @@ export function UpdateAnimation() {
 
   const handleDone = useCallback(() => {
     setHidePanels(true);
+    setShowIpfsInfo(false);
     setTimeout(() => {
       setCarDriveStage('back');
       setTimeout(() => {
@@ -138,7 +131,7 @@ export function UpdateAnimation() {
           showBlockchainInfo={showBlockchainInfo && !hidePanels}
           onReturnToInitial={handleReturnToInitial}
           isDownloading={isDownloading}
-          ipfsFileInfo={hidePanels ? undefined : ipfsFileInfo}
+          showIpfsInfo={showIpfsInfo && !hidePanels}
           verificationStage={verificationStage}
           onVerificationStageChange={handleVerificationStageChange}
           carDriveStage={carDriveStage}
@@ -160,41 +153,6 @@ export function UpdateAnimation() {
       </button>
 
       <div className="content-overlay">
-        {/* {currentStep >= 1 && (
-          <div className="verification-step active">
-            블록체인에서 업데이트 트랜잭션 감지됨
-            <div className="hash-info">
-              <span className="hash-label">트랜잭션 해시:</span>
-              <span className="hash-value">0x7d3c...</span>
-            </div>
-          </div>
-        )} */}
-
-        {/* {currentStep >= 2 && (
-          <div className="verification-step active">
-            구매 완료
-          </div>
-        )} */}
-
-        {/* {currentStep >= 3 && showBlockchainInfo && (
-          <div className="verification-step active blockchain-info">
-            <h3>블록체인 정보 수신 완료</h3>
-            <div className="info-details">
-              <div className="info-row">
-                <span className="info-label">IPFS 해시:</span>
-                <span className="info-value">QmX8n7d...</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">CP-ABE 암호문:</span>
-                <span className="info-value">A7bF9k...</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">업데이트 파일 해시:</span>
-                <span className="info-value">0xE9c2d...</span>
-              </div>
-            </div>
-          </div>
-        )} */}
       </div>
 
       <div className="controls">
@@ -204,13 +162,6 @@ export function UpdateAnimation() {
           disabled={isDownloading}
         >
           {buttonLabel}
-        </button>
-        <button 
-          id="reset-btn" 
-          onClick={handleReset}
-          disabled={currentStep === 0}
-        >
-          처음부터
         </button>
       </div>
     </div>

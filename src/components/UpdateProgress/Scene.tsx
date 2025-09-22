@@ -16,11 +16,7 @@ interface SceneProps {
   onReturnToInitial: () => void;
   isDownloading?: boolean;
   onDownloadComplete?: () => void;
-  ipfsFileInfo?: {
-    cid: string;
-    name: string;
-    size: number;
-  };
+  showIpfsInfo?: boolean;
   verificationStage?: 'idle' | 'hash-verification' | 'cpabe-decryption' | 'final-decryption';
   onVerificationStageChange?: (stage: 'idle' | 'hash-verification' | 'cpabe-decryption' | 'final-decryption') => void;
   carDriveStage?: 'idle' | 'back' | 'forward';
@@ -31,20 +27,20 @@ const CameraController = React.forwardRef(({
   isAnimating, 
   showCarView, 
   showBlockchainInfo,
-  closeupStage, // 추가
+  closeupStage, 
   onZoomComplete,
   onCarViewEnter,
   onReturnToInitialPosition,
-  carDriveStage // <-- 추가
+  carDriveStage 
 }: { 
   isAnimating: boolean; 
   showCarView?: boolean;
   showBlockchainInfo?: boolean;
-  closeupStage?: 'none' | 'hash' | 'cpabe' | 'final'; // 추가
+  closeupStage?: 'none' | 'hash' | 'cpabe' | 'final'; 
   onZoomComplete: () => void;
   onCarViewEnter?: () => void;
   onReturnToInitialPosition?: () => void;
-  carDriveStage?: 'idle' | 'back' | 'forward'; // <-- 추가
+  carDriveStage?: 'idle' | 'back' | 'forward'; 
 }, ref) => {
   const controlsRef = useRef<any>(null);
   const initialCam = useRef<{ position: [number, number, number]; target: [number, number, number] } | null>(null);
@@ -96,7 +92,7 @@ const CameraController = React.forwardRef(({
   useEffect(() => {
     if (!controlsRef.current) return;
     const camera = controlsRef.current.object;
-    // 클로즈업 위치 정의 (차량 위, 70도 각도, 덜 왼쪽)
+    // 클로즈업 위치 정의 (차량 위, 70도 각도)
     const closeupPositions = {
       hash: { pos: [-35, 8, 12], target: [-20, 5, -5] },
       cpabe: { pos: [-35, 9, 12], target: [-20, 5, -5] },
@@ -131,7 +127,6 @@ const CameraController = React.forwardRef(({
 
     // 자동차가 앞으로 주행할 때 카메라가 따라가도록
     if (showCarView && carDriveStage === 'forward') {
-      // 카메라 위치는 초기 위치에서 고정, target만 z축(앞으로)으로만 이동 (x는 그대로)
       if (!initialCam.current) return;
       const duration = 1.0;
       if (carForwardStartRef.current === null) carForwardStartRef.current = performance.now() / 1000;
@@ -390,7 +385,7 @@ export function Scene({
   onReturnToInitial,
   isDownloading = false,
   onDownloadComplete,
-  ipfsFileInfo,
+  showIpfsInfo = false,
   verificationStage = 'idle',
   onVerificationStageChange,
   carDriveStage = 'idle',
@@ -400,7 +395,6 @@ export function Scene({
   const [zoomComplete, setZoomComplete] = useState(false);
   const [showUpdatePanel, setShowUpdatePanel] = useState(false);
   const [showCarView, setShowCarView] = useState(initialShowCarView);
-  const [isShowingIpfsInfo, setIsShowingIpfsInfo] = useState(false);
   const [currentVerificationStage, setCurrentVerificationStage] = useState(verificationStage);
   const [closeupStage, setCloseupStage] = useState<'none' | 'hash' | 'cpabe' | 'final'>('none');
   const cameraControllerRef = useRef<{
@@ -623,20 +617,6 @@ export function Scene({
                           </div>
                         </div>
                       </div>
-                      {/* 데이터 무결성 검증 완료 패널 제거됨 */}
-                      {/*
-                      {currentVerificationStage !== 'idle' && (
-                        <div style={{ marginTop: '25px', padding: '16px', background: 'rgba(34, 197, 94, 0.1)', borderRadius: '8px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
-                          <div style={{ color: '#22C55E', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2em' }}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                              <path d="M20 6L9 17L4 12" stroke="#22C55E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            데이터 무결성 검증 완료
-                          </div>
-                          <div style={{ fontSize: '1.1em', color: '#9CA3AF' }}>모든 데이터가 성공적으로 검증되었습니다.</div>
-                        </div>
-                      )}
-                      */}
                     </div>
                   </Html>
                 )}
@@ -651,19 +631,12 @@ export function Scene({
           />
           <IPFS 
             scale={3.4}
-            isAnimating={isAnimating} 
             position={[-5, 25, 40]}
             isDownloading={isDownloading}
-            onDownload={() => {
-              if (ipfsFileInfo) {
-                setIsShowingIpfsInfo(true);
-                onDownloadComplete?.();
-              }
-            }}
-            ipfsFileInfo={ipfsFileInfo}
+            onDownload={onDownloadComplete}
           />
           {/* IPFS 파일 정보 패널 */}
-          {isShowingIpfsInfo && ipfsFileInfo && (
+          {showIpfsInfo && (
             <Html position={[45, -1, 78]} rotation={[0, Math.PI + (Math.PI / 1.75), 0]} transform occlude scale={5.3}>
               <div style={{
                 background: 'rgba(0, 0, 0, 0.9)',
@@ -685,7 +658,7 @@ export function Scene({
                       fontSize: '1.1em',
                       fontFamily: 'monospace'
                     }}>
-                      {ipfsFileInfo.name}
+                      update_v1.2.3.bin
                     </div>
                   </div>
                   <div style={{ marginBottom: '20px' }}>
@@ -699,7 +672,7 @@ export function Scene({
                       fontFamily: 'monospace',
                       wordBreak: 'break-all'
                     }}>
-                      {ipfsFileInfo.cid}
+                      QmX8ygh7K4sPhwzFvjNnbFb1pTWKh1QUcNWp7Ny1TYTkxc
                     </div>
                   </div>
                   <div>
@@ -712,7 +685,7 @@ export function Scene({
                       fontSize: '1.1em',
                       fontFamily: 'monospace'
                     }}>
-                      {(ipfsFileInfo.size / 1024).toFixed(2)} KB
+                      1,024.00 KB
                     </div>
                   </div>
                 </div>

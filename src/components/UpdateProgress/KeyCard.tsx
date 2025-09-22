@@ -8,7 +8,7 @@ Title: Key Card
 */
 
 import * as THREE from 'three'
-import React, { useRef } from 'react'
+import { useRef } from 'react'
 import { useGLTF, Html } from '@react-three/drei'
 
 // 타입 정의 (GoldKey 참고)

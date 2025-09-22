@@ -42,10 +42,10 @@ export default function GoldKey({
   useEffect(() => {
     // 필요한 경우 메터리얼 속성 조정
     if (materials.Material) {
-      materials.Material.metalness = 1.0;       // 더 금속적인 느낌
-      materials.Material.roughness = 0.05;      // 더 반짝이는 표면
+      materials.Material.metalness = 1.0;       // 금속적인 느낌
+      materials.Material.roughness = 0.05;      // 반짝이는 표면
       materials.Material.emissive = new THREE.Color(0xFCD34D);
-      materials.Material.emissiveIntensity = 1.0;  // 발광 효과 증가
+      materials.Material.emissiveIntensity = 1.0;  // 발광 효과
       materials.Material.needsUpdate = true;
     }
     if (materials.material_0) {
@@ -70,7 +70,6 @@ export default function GoldKey({
     const newKeyAppear = 3.0;
     const targetX = startX + jumpDistance * 2;
     const targetY = startY;
-    const targetZ = startZ;
     const startTime = Date.now();
 
     const animate = () => {
