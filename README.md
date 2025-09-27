@@ -38,16 +38,17 @@ See [install.md](./install.md) for installation and usage instructions.
 ## Directory Structure
 
 ```
-src/
-├── components/     # UI and 3D components
-├── pages/          # Main application pages
-├── services/       # API and backend communication
-├── hooks/          # Custom React hooks
-├── types/          # TypeScript type definitions
-├── utils/          # Utility functions
-├── assets/         # Static resources
-public/
-├── 3D models and license files
+Blocker_Device_Frontend/
+├── src/
+│   ├── components/     # UI and 3D components
+│   ├── pages/          # Main application pages
+│   ├── services/       # API and backend communication
+│   ├── hooks/          # Custom React hooks
+│   ├── types/          # TypeScript type definitions
+│   ├── utils/          # Utility functions
+│   ├── assets/         # Static resources
+├── public/
+│   ├── 3D models and license files
 ```
 
 ## Third-Party Licenses
