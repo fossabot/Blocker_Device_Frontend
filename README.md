@@ -33,21 +33,22 @@ Blocker Device Frontend is an open-source web app for managing and monitoring Io
 - ![Axios](https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge) Handles all backend API calls for device data, update history, and more.
 ## Installation
 
-See [INSTALL.md](./INSTALL.md) for installation and usage instructions.
+See [install.md](./install.md) for installation and usage instructions.
 
 ## Directory Structure
 
 ```
-src/
-├── components/     # UI and 3D components
-├── pages/          # Main application pages
-├── services/       # API and backend communication
-├── hooks/          # Custom React hooks
-├── types/          # TypeScript type definitions
-├── utils/          # Utility functions
-├── assets/         # Static resources
-public/
-├── 3D models and license files
+Blocker_Device_Frontend/
+├── src/
+│   ├── components/     # UI and 3D components
+│   ├── pages/          # Main application pages
+│   ├── services/       # API and backend communication
+│   ├── hooks/          # Custom React hooks
+│   ├── types/          # TypeScript type definitions
+│   ├── utils/          # Utility functions
+│   ├── assets/         # Static resources
+├── public/
+│   ├── 3D models and license files
 ```
 
 ## Third-Party Licenses
