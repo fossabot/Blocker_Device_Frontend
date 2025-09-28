@@ -26,7 +26,6 @@ const NavBar: React.FC = () => {
       </div>
       <div className={styles.navLinks}>
         <Link to="/" className={styles.navLink}>Home</Link>
-        <Link to="/updates" className={styles.navLink}>Updates</Link>
         <Link to="/history" className={styles.navLink}>History</Link>
         <div className="flex items-center gap-6">
           <button
