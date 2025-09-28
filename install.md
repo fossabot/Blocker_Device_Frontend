@@ -8,40 +8,31 @@
 ## 1. Clone the Repository
 
 ```sh
-git clone https://github.com/your-org/Blocker_Device_Frontend.git
+git clone https://github.com/HSU-Blocker/Blocker_Device_Frontend.git
 cd Blocker_Device_Frontend
 ```
 
-## 2. Install Dependencies
+## 2. Configure .env
+
+Create a .env file in the root directory of the project with the following content:
+
+```sh
+VITE_API_URL=http://localhost:5050
+```
+
+## 3. Install Dependencies
 
 ```sh
 npm install
 ```
 
-## 3. Start the Development Server
+## 4. Start the Development Server
 
 ```sh
 npm run dev
 ```
-- By default, the app runs at `http://localhost:5173`.
-
-## 4. Build for Production
-
-```sh
-npm run build
-```
-- The production build will be generated in the `dist/` folder.
-
-## 5. Preview the Production Build
-
-```sh
-npm run preview
-```
-
-## 6. Environment Variables (Optional)
-
-- You can create a `.env` file in the project root to set environment variables such as API endpoints.
+- By default, the app runs at [http://localhost:5173](http://localhost:5173)
 
 ---
 
-If you encounter any issues, please report them via [Issues](https://github.com/your-org/Blocker_Device_Frontend/issues).
+If you encounter any issues, please report them via [Issues](https://github.com/HSU-Blocker/Blocker_Device_Frontend/issues).
